@@ -1,8 +1,5 @@
 # Trekking Management Application (TMA) - V2
 
-**Student Username:** `24f3002830`  
-**Course:** Modern Application Development II (MAD-2)
-
 ---
 
 ## 📌 Project Overview
