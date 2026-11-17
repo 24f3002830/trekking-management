@@ -78,6 +78,7 @@ trekking-management/
 - [x] **Milestone 3:** Celery asynchronous tasks, periodic daily reminders, monthly reports, and CSV export.
 - [x] **Milestone 4:** Vue.js + Bootstrap reactive frontend integration (SFC Single Page Application).
 - [x] **Milestone 5:** End-to-end testing, realistic demo seeding, packaging, and final polish.
+- [x] **Milestone 6:** Payment simulation, in-app notification center, Chart.js analytics, and comprehensive user manual.
 
 ---
 
@@ -98,7 +99,7 @@ Pre-populates the database with Himalayan treks across Uttarakhand, Himachal & L
 ```bash
 python run_all_tests.py
 ```
-*(Runs all milestone test suites: test_milestone1.py through test_milestone5.py).*
+*(Runs all milestone test suites: test_milestone1.py through test_milestone6.py consecutively).*
 
 ### 4. Start the Full-Stack Web Application
 ```bash
@@ -115,6 +116,9 @@ Default superuser credentials (seeded programmatically):
 python package_submission.py
 ```
 Generates `trekking_management_24f3002830.zip` adhering strictly to the folder structure required for MAD-2 evaluation.
+
+### 6. Full Documentation & User Manual
+Refer to [`USER_MANUAL.md`](USER_MANUAL.md) for step-by-step role guides, screenshots/workflow overviews, and developer reference.
 
 ---
 

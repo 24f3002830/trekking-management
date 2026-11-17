@@ -169,6 +169,7 @@
                   <th>Booked Date</th>
                   <th>Slots</th>
                   <th>Total Amount</th>
+                  <th>Payment / Ref</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -181,6 +182,11 @@
                   <td>{{ b.booking_date }}</td>
                   <td><span class="badge bg-secondary">{{ b.slots_booked }}</span></td>
                   <td class="text-success fw-bold">₹{{ b.total_price.toLocaleString() }}</td>
+                  <td>
+                    <span class="badge bg-light text-dark border">
+                      <i class="bi bi-receipt me-1"></i>{{ b.transaction_id || 'PRE_SIM_PAID' }}
+                    </span>
+                  </td>
                   <td>
                     <span :class="['badge', getBookingStatusBadge(b.status)]">{{ b.status }}</span>
                   </td>
@@ -234,6 +240,16 @@
               <small class="text-muted">Available slots: {{ selectedTrek.available_slots }}</small>
             </div>
 
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Payment Method (Simulation)</label>
+              <select v-model="paymentMethod" class="form-select">
+                <option value="Simulated UPI (GooglePay / PhonePe)">⚡ UPI (GooglePay / PhonePe / Paytm)</option>
+                <option value="Simulated Credit / Debit Card">💳 Credit / Debit Card</option>
+                <option value="Simulated Net Banking">🏦 Net Banking</option>
+              </select>
+              <div class="form-text text-success"><i class="bi bi-shield-check me-1"></i>Safe test payment simulation</div>
+            </div>
+
             <div class="card bg-light border-0 p-3 mb-3">
               <div class="d-flex justify-content-between mb-1">
                 <span>Price per slot:</span>
@@ -277,6 +293,7 @@ export default {
       exportingCsv: false,
       selectedTrek: null,
       bookingSlots: 1,
+      paymentMethod: 'Simulated UPI (GooglePay / PhonePe)',
       bookingInProgress: false,
       alertMessage: '',
       alertType: 'success',
@@ -370,7 +387,8 @@ export default {
           },
           body: JSON.stringify({
             trek_id: this.selectedTrek.id,
-            slots_booked: this.bookingSlots
+            slots_booked: this.bookingSlots,
+            payment_method: this.paymentMethod
           })
         });
 

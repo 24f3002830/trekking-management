@@ -1,3 +1,8 @@
+"""
+Database models for Trekking Management Application (TMA) - V2.
+Uses Flask-SQLAlchemy with SQLite.
+Includes: User, StaffProfile, Trek, Booking, and Notification.
+"""
 
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -7,7 +12,9 @@ db = SQLAlchemy()
 
 
 class User(db.Model):
-
+    """
+    Unified User model supporting all roles: 'admin', 'staff', and 'user' (trekker).
+    """
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -24,6 +31,7 @@ class User(db.Model):
     bookings = db.relationship('Booking', backref='user', lazy=True, cascade='all, delete-orphan')
     staff_profile = db.relationship('StaffProfile', backref='user', uselist=False, lazy=True, cascade='all, delete-orphan')
     assigned_treks = db.relationship('Trek', backref='assigned_staff', lazy=True)
+    notifications = db.relationship('Notification', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password):
         """Hash and store user password."""
@@ -48,8 +56,9 @@ class User(db.Model):
 
 
 class StaffProfile(db.Model):
-    #Staff Profile containing specialized details for trek guides/staff.
-    
+    """
+    Staff Profile containing specialized details for trek guides/staff.
+    """
     __tablename__ = 'staff_profiles'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -71,9 +80,9 @@ class StaffProfile(db.Model):
 
 
 class Trek(db.Model):
-    
-    #Trek model representing a trekking expedition/route.
-    
+    """
+    Trek model representing a trekking expedition/route.
+    """
     __tablename__ = 'treks'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -117,6 +126,7 @@ class Trek(db.Model):
 class Booking(db.Model):
     """
     Booking record linking a Trekker to a Trek.
+    Includes simulated transaction reference and payment status.
     """
     __tablename__ = 'bookings'
 
@@ -128,6 +138,8 @@ class Booking(db.Model):
     booking_date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(50), default='Booked')  # 'Booked', 'Cancelled', 'Completed'
     payment_status = db.Column(db.String(50), default='Paid')  # 'Pending', 'Paid'
+    transaction_id = db.Column(db.String(80), nullable=True)
+    payment_method = db.Column(db.String(50), default='Simulated UPI')
 
     def to_dict(self):
         return {
@@ -141,7 +153,35 @@ class Booking(db.Model):
             'total_price': self.total_price,
             'booking_date': self.booking_date.strftime('%Y-%m-%d %H:%M:%S') if self.booking_date else None,
             'status': self.status,
-            'payment_status': self.payment_status
+            'payment_status': self.payment_status,
+            'transaction_id': self.transaction_id,
+            'payment_method': self.payment_method
+        }
+
+
+class Notification(db.Model):
+    """
+    In-app user notifications for booking confirmations, cancellations, and reminders.
+    """
+    __tablename__ = 'notifications'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(150), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    notification_type = db.Column(db.String(50), default='info')  # 'booking', 'cancellation', 'reminder', 'system'
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'title': self.title,
+            'message': self.message,
+            'notification_type': self.notification_type,
+            'is_read': self.is_read,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None
         }
 
 
@@ -153,6 +193,20 @@ def init_db(app):
     with app.app_context():
         # Create all tables programmatically
         db.create_all()
+
+        # Seamless programmatic migration for newly added columns if table already existed
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            try:
+                conn.execute(text("ALTER TABLE bookings ADD COLUMN transaction_id VARCHAR(80)"))
+                conn.commit()
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE bookings ADD COLUMN payment_method VARCHAR(50) DEFAULT 'Simulated UPI'"))
+                conn.commit()
+            except Exception:
+                pass
 
         # Check if an Admin user already exists
         admin_user = User.query.filter_by(role='admin').first()
