@@ -80,6 +80,7 @@ trekking-management/
 - [x] **Milestone 5:** End-to-end testing, realistic demo seeding, packaging, and final polish.
 - [x] **Milestone 6:** Payment simulation, in-app notification center, Chart.js analytics, and comprehensive user manual.
 - [x] **Milestone 7:** Trek Reviews & 5-Star Ratings, Progressive Web App (PWA) manifest & service worker for "Add to Desktop".
+- [x] **Milestone 8:** Trekker Medical & Emergency Safety Profile, Day-wise Itinerary & Gear Checklist, and Staff Participant Attendance / Check-In Management.
 
 ---
 
@@ -100,7 +101,7 @@ Pre-populates the database with Himalayan treks across Uttarakhand, Himachal & L
 ```bash
 python run_all_tests.py
 ```
-*(Runs all 7 milestone test suites: test_milestone1.py through test_milestone7.py consecutively).*
+*(Runs all 8 milestone test suites: test_milestone1.py through test_milestone8.py consecutively).*
 
 ### 4. Start the Full-Stack Web Application
 ```bash
@@ -173,7 +174,8 @@ celery -A backend.celery_app.celery beat --loglevel=info
 | | `GET` | `/api/bookings/my-bookings` | Trekker | View personal booking history |
 | | `PUT` | `/api/bookings/<id>/cancel`| Owner/Admin | Cancel booking & return slots |
 | **Staff** | `GET` | `/api/staff/dashboard` | Staff | View assigned treks & participant counts |
-| | `GET` | `/api/staff/treks/<id>/participants` | Staff/Admin | View participants for assigned trek |
+| | `GET` | `/api/staff/treks/<id>/participants` | Staff/Admin | View participants manifest with emergency details |
+| | `PUT` | `/api/staff/bookings/<id>/check-in` | Staff/Admin | Update participant check-in attendance & medical clearance |
 | | `PUT` | `/api/staff/treks/<id>/status` | Staff/Admin | Update status (Open/Started/Completed) |
 | | `PUT` | `/api/staff/treks/<id>/slots` | Staff/Admin | Update available slot capacity |
 | **Admin** | `GET` | `/api/admin/dashboard` | Admin | Overall metrics & recent activity |

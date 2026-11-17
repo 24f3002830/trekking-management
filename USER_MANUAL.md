@@ -185,7 +185,29 @@ Open your browser and navigate to: **`http://127.0.0.1:5000/`**
 
 ---
 
-## 8. Celery Batch Jobs & Caching
+## 8. Emergency Safety, Itinerary & Staff Participant Management
+
+### Trekker Emergency & Medical Safety Profile
+* Trekkers can configure high-altitude safety parameters in **My Profile**:
+  * **Emergency Contact Details:** Contact name and telephone number for rapid reach.
+  * **Blood Group:** Pre-set for high-altitude emergency preparedness (e.g., `O+`, `B+`, `A+`, `AB+`).
+  * **Medical & Allergy Notes:** Chronic respiratory conditions, allergies, or fitness levels.
+
+### Day-Wise Itinerary & Mandatory Gear Checklist
+* Accessible directly from every trek card via the **Itinerary & Gear** button:
+  * Comprehensive day-by-day altitude progression and camp-to-camp routes.
+  * Mandatory packing checklist (high-ankle boots, rucksacks, thermal inners, UV protection, hydration, and first-aid/Diamox).
+
+### Staff Attendance & Medical Clearance Manifest
+* In the **Staff Dashboard**, clicking **Participants** for an assigned trek opens the full operational manifest:
+  * View participant contact and emergency numbers.
+  * Check blood groups and medical notes.
+  * Update **Attendance / Check-In** (`Pending`, `Checked In`, `No Show`).
+  * Toggle **Medical Clearance** status (`Cleared` or `Needs Review`).
+
+---
+
+## 9. Celery Batch Jobs & Caching
 
 ### Redis Caching
 * Frequently browsed treks (`GET /api/treks`) are cached in Redis with a 5-minute TTL.
@@ -205,9 +227,9 @@ celery -A backend.celery_app.celery beat --loglevel=info
 
 ---
 
-## 9. Automated Verification Suites
+## 10. Automated Verification Suites
 
-Run the complete test suite across all 7 milestones:
+Run the complete test suite across all 8 milestones:
 ```bash
 python run_all_tests.py
 ```
@@ -220,10 +242,11 @@ Or run individual milestone suites:
 * `python backend/test_milestone5.py` — Master End-to-End System Integration Checks
 * `python backend/test_milestone6.py` — Payment Simulation, Notifications & Analytics
 * `python backend/test_milestone7.py` — Reviews, 5-Star Ratings & PWA Add to Desktop
+* `python backend/test_milestone8.py` — Safety Profile, Itinerary & Staff Check-In Attendance
 
 ---
 
-## 10. Packaging for Submission
+## 11. Packaging for Submission
 
 Run the submission packager to create the exact archive required by the course:
 ```bash

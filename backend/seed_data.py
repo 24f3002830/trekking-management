@@ -109,10 +109,10 @@ def seed_database():
 
         # 3. Sample Trekkers (Regular Users)
         trekkers_data = [
-            {'username': 'trekker_rahul', 'email': 'rahul@example.com', 'full_name': 'Rahul Sharma', 'phone': '9123456701'},
-            {'username': 'trekker_sneha', 'email': 'sneha@example.com', 'full_name': 'Sneha Rao', 'phone': '9123456702'},
-            {'username': 'trekker_aarav', 'email': 'aarav@example.com', 'full_name': 'Aarav Kapoor', 'phone': '9123456703'},
-            {'username': 'trekker_ananya', 'email': 'ananya@example.com', 'full_name': 'Ananya Sen', 'phone': '9123456704'}
+            {'username': 'trekker_rahul', 'email': 'rahul@example.com', 'full_name': 'Rahul Sharma', 'phone': '9123456701', 'emergency_contact_name': 'Sunita Sharma', 'emergency_contact_phone': '9811223344', 'blood_group': 'O+', 'medical_notes': 'No altitude allergies. Regular runner.'},
+            {'username': 'trekker_sneha', 'email': 'sneha@example.com', 'full_name': 'Sneha Rao', 'phone': '9123456702', 'emergency_contact_name': 'Kavita Rao', 'emergency_contact_phone': '9811223355', 'blood_group': 'B+', 'medical_notes': 'Mild dust allergy; carries personal inhaler.'},
+            {'username': 'trekker_aarav', 'email': 'aarav@example.com', 'full_name': 'Aarav Kapoor', 'phone': '9123456703', 'emergency_contact_name': 'Rakesh Kapoor', 'emergency_contact_phone': '9811223366', 'blood_group': 'A+', 'medical_notes': 'No pre-existing conditions.'},
+            {'username': 'trekker_ananya', 'email': 'ananya@example.com', 'full_name': 'Ananya Sen', 'phone': '9123456704', 'emergency_contact_name': 'Debashis Sen', 'emergency_contact_phone': '9811223377', 'blood_group': 'AB+', 'medical_notes': 'Certified swimmer, fit for high-altitude.'}
         ]
 
         trekkers = {}
@@ -124,6 +124,10 @@ def seed_database():
                     email=t['email'],
                     full_name=t['full_name'],
                     phone=t['phone'],
+                    emergency_contact_name=t.get('emergency_contact_name'),
+                    emergency_contact_phone=t.get('emergency_contact_phone'),
+                    blood_group=t.get('blood_group'),
+                    medical_notes=t.get('medical_notes'),
                     role='user',
                     is_active=True
                 )
@@ -131,6 +135,12 @@ def seed_database():
                 db.session.add(user)
                 db.session.commit()
                 print(f"  ✅ Trekker created: {t['username']}")
+            else:
+                user.emergency_contact_name = t.get('emergency_contact_name')
+                user.emergency_contact_phone = t.get('emergency_contact_phone')
+                user.blood_group = t.get('blood_group')
+                user.medical_notes = t.get('medical_notes')
+                db.session.commit()
             trekkers[t['username']] = user
 
         # 4. Realistic Treks
@@ -223,6 +233,9 @@ def seed_database():
         ]
 
         created_treks = []
+        sample_itinerary = "Day 1: Base camp arrival and gear briefing\nDay 2: Acclimatization trek to ridge camp\nDay 3: Intermediate pass crossing\nDay 4: Summit ridge push and panoramic view\nDay 5: Controlled descent to basecamp"
+        sample_gear = "Sturdy high-ankle trekking shoes, 50L Rucksack with rain cover, 2x thermal fleece inners, Windproof jacket, UV sunglasses, 2x reusable water bottles, Headlamp with extra batteries, Personal first-aid & Diamox"
+
         for td in treks_data:
             trek = Trek.query.filter_by(name=td['name']).first()
             if not trek:
@@ -235,6 +248,8 @@ def seed_database():
                     total_slots=td['total_slots'],
                     available_slots=td['available_slots'],
                     price=td['price'],
+                    itinerary=sample_itinerary,
+                    gear_checklist=sample_gear,
                     assigned_staff_id=td['staff'].id,
                     start_date=td['start_date'],
                     end_date=td['end_date'],
@@ -243,6 +258,10 @@ def seed_database():
                 db.session.add(trek)
                 db.session.commit()
                 print(f"  ✅ Trek seeded: {td['name']}")
+            else:
+                trek.itinerary = sample_itinerary
+                trek.gear_checklist = sample_gear
+                db.session.commit()
             created_treks.append(trek)
 
         # 5. Seed Initial Bookings

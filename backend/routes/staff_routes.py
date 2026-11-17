@@ -77,7 +77,13 @@ def get_trek_participants(current_user, trek_id):
             'slots_booked': b.slots_booked,
             'booking_date': b.booking_date.strftime('%Y-%m-%d %H:%M:%S'),
             'booking_status': b.status,
-            'payment_status': b.payment_status
+            'payment_status': b.payment_status,
+            'emergency_contact_name': b.user.emergency_contact_name,
+            'emergency_contact_phone': b.user.emergency_contact_phone,
+            'blood_group': b.user.blood_group,
+            'medical_notes': b.user.medical_notes,
+            'check_in_status': b.check_in_status or 'Pending',
+            'medical_cleared': b.medical_cleared if b.medical_cleared is not None else True
         })
 
     return jsonify({
@@ -169,4 +175,47 @@ def update_trek_slots(current_user, trek_id):
         'success': True,
         'message': f'Available slots updated to {available_slots}.',
         'trek': trek.to_dict()
+    }), 200
+
+
+@staff_bp.route('/bookings/<int:booking_id>/check-in', methods=['PUT'])
+@token_required
+@role_required(['staff', 'admin'])
+def update_participant_checkin(current_user, booking_id):
+    """
+    Staff / Admin updates check-in attendance and medical clearance for a participant booking.
+    Strictly verifies only assigned staff (or Admin) can update.
+    """
+    booking = Booking.query.get(booking_id)
+    if not booking:
+        return jsonify({'success': False, 'message': 'Booking not found.'}), 404
+
+    if current_user.role == 'staff' and booking.trek.assigned_staff_id != current_user.id:
+        return jsonify({
+            'success': False,
+            'message': 'Access forbidden: you are not assigned to manage this trek.'
+        }), 403
+
+    data = request.get_json() or {}
+    check_in_status = data.get('check_in_status')
+    medical_cleared = data.get('medical_cleared')
+
+    if check_in_status:
+        valid_checkins = ['Pending', 'Checked In', 'No Show']
+        if check_in_status not in valid_checkins:
+            return jsonify({
+                'success': False,
+                'message': f'Invalid check_in_status. Allowed values: {valid_checkins}'
+            }), 400
+        booking.check_in_status = check_in_status
+
+    if medical_cleared is not None:
+        booking.medical_cleared = bool(medical_cleared)
+
+    db.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': f"Participant {booking.user.full_name} status updated to '{booking.check_in_status}'.",
+        'booking': booking.to_dict()
     }), 200

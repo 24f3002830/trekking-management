@@ -128,15 +128,20 @@
               </div>
             </div>
 
-            <div class="card-footer bg-white border-0 pb-3">
-              <button
-                class="btn btn-primary w-100 fw-semibold"
-                :disabled="trek.status !== 'Open' || trek.available_slots === 0"
-                @click="openBookingModal(trek)"
-              >
-                <i class="bi bi-ticket-perforated me-1"></i>
-                {{ trek.available_slots === 0 ? 'Sold Out' : 'Book Now' }}
-              </button>
+            <div class="card-footer bg-white border-0 pb-3 pt-0">
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm flex-fill" @click="openItineraryModal(trek)">
+                  <i class="bi bi-compass me-1"></i>Itinerary
+                </button>
+                <button
+                  class="btn btn-primary btn-sm flex-fill fw-semibold"
+                  :disabled="trek.status !== 'Open' || trek.available_slots === 0"
+                  @click="openBookingModal(trek)"
+                >
+                  <i class="bi bi-ticket-perforated me-1"></i>
+                  {{ trek.available_slots === 0 ? 'Sold Out' : 'Book' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -345,6 +350,43 @@
         </div>
       </div>
     </div>
+
+    <!-- TREK ITINERARY & GEAR CHECKLIST MODAL -->
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" v-if="itineraryTrek">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title"><i class="bi bi-compass-fill me-2"></i>{{ itineraryTrek.name }}</h5>
+            <button type="button" class="btn-close btn-close-white" @click="itineraryTrek = null"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="mb-4">
+              <h6 class="fw-bold text-success mb-2">
+                <i class="bi bi-signpost-split me-1"></i>Day-Wise Itinerary ({{ itineraryTrek.duration_days }} Days)
+              </h6>
+              <div class="bg-light p-3 rounded small text-secondary" style="white-space: pre-line;">{{ itineraryTrek.itinerary || 'Day 1: Base camp orientation & fitness walk\nDay 2: Ascent to high ridge campsite\nDay 3: Scenic pass crossing & alpine meadows\nDay 4: Summit push (breathtaking panoramic vistas)\nDay 5: Controlled return trek to base' }}</div>
+            </div>
+            <div>
+              <h6 class="fw-bold text-danger mb-2">
+                <i class="bi bi-backpack4 me-1"></i>Mandatory Packing & Gear Checklist
+              </h6>
+              <div class="bg-light p-3 rounded small text-secondary" style="white-space: pre-line;">{{ itineraryTrek.gear_checklist || '• Sturdy high-ankle trekking shoes with good grip\n• 50L Rucksack with waterproof rain cover\n• 2 pairs of thermal fleece inners & windproof jacket\n• UV protection sunglasses & quick-dry trekking pants\n• 2x 1L reusable water bottles & electrolyte sachets\n• Headlamp with extra batteries\n• Personal blister kit & prescribed Diamox (if recommended)' }}</div>
+            </div>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" @click="itineraryTrek = null">Close</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="itineraryTrek.status !== 'Open' || itineraryTrek.available_slots === 0"
+              @click="openBookingModal(itineraryTrek); itineraryTrek = null"
+            >
+              Book Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -364,6 +406,7 @@ export default {
       bookingSlots: 1,
       paymentMethod: 'Simulated UPI (GooglePay / PhonePe)',
       bookingInProgress: false,
+      itineraryTrek: null,
       reviewTrek: null,
       trekReviews: [],
       loadingReviews: false,
@@ -582,6 +625,9 @@ export default {
       } finally {
         this.submittingReview = false;
       }
+    },
+    openItineraryModal(trek) {
+      this.itineraryTrek = trek;
     }
   }
 };

@@ -113,11 +113,11 @@
 
     <!-- PARTICIPANTS MODAL -->
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" v-if="activeTrekParticipants">
-      <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow">
           <div class="modal-header bg-dark text-white">
             <h5 class="modal-title">
-              <i class="bi bi-people-fill me-2"></i>Participants: {{ activeTrekParticipants.trek_name }}
+              <i class="bi bi-people-fill me-2"></i>Participants: {{ activeTrekParticipants.trek_name || activeTrekParticipants.name }}
             </h5>
             <button type="button" class="btn-close btn-close-white" @click="activeTrekParticipants = null"></button>
           </div>
@@ -132,24 +132,57 @@
 
             <div v-else class="table-responsive">
               <table class="table table-sm table-hover align-middle">
-                <thead>
+                <thead class="table-light">
                   <tr>
                     <th>Booking #</th>
-                    <th>Participant Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
+                    <th>Participant</th>
+                    <th>Emergency Contact</th>
+                    <th>Blood & Medical</th>
                     <th>Slots</th>
-                    <th>Booking Date</th>
+                    <th>Attendance</th>
+                    <th>Medical Clearance</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="p in participants" :key="p.booking_id">
-                    <td>#{{ p.booking_id }}</td>
-                    <td class="fw-semibold">{{ p.user_name }}</td>
-                    <td>{{ p.user_email }}</td>
-                    <td>{{ p.user_phone || 'N/A' }}</td>
-                    <td><span class="badge bg-success">{{ p.slots_booked }}</span></td>
-                    <td><small>{{ p.booking_date }}</small></td>
+                    <td><span class="badge bg-secondary">#{{ p.booking_id }}</span></td>
+                    <td>
+                      <div class="fw-bold">{{ p.user_name }}</div>
+                      <small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ p.user_phone || 'No phone' }}</small>
+                    </td>
+                    <td>
+                      <div v-if="p.emergency_contact_name" class="small">
+                        <strong>{{ p.emergency_contact_name }}</strong><br>
+                        <span class="text-muted"><i class="bi bi-phone me-1"></i>{{ p.emergency_contact_phone || 'N/A' }}</span>
+                      </div>
+                      <span v-else class="text-muted small">Not provided</span>
+                    </td>
+                    <td>
+                      <span v-if="p.blood_group" class="badge bg-danger me-1">{{ p.blood_group }}</span>
+                      <small class="text-secondary d-block mt-1">{{ p.medical_notes || 'No known conditions' }}</small>
+                    </td>
+                    <td><span class="badge bg-success">{{ p.slots_booked }} slot(s)</span></td>
+                    <td>
+                      <select
+                        class="form-select form-select-sm"
+                        :value="p.check_in_status || 'Pending'"
+                        @change="updateCheckIn(p.booking_id, $event.target.value, p.medical_cleared)"
+                      >
+                        <option value="Pending">⏳ Pending</option>
+                        <option value="Checked In">✅ Checked In</option>
+                        <option value="No Show">❌ No Show</option>
+                      </select>
+                    </td>
+                    <td>
+                      <button
+                        class="btn btn-sm"
+                        :class="p.medical_cleared ? 'btn-outline-success' : 'btn-outline-warning'"
+                        @click="updateCheckIn(p.booking_id, p.check_in_status, !p.medical_cleared)"
+                      >
+                        <i :class="p.medical_cleared ? 'bi bi-heart-pulse-fill text-success' : 'bi bi-exclamation-triangle-fill text-warning'" class="me-1"></i>
+                        {{ p.medical_cleared ? 'Cleared' : 'Needs Review' }}
+                      </button>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -297,6 +330,35 @@ export default {
         this.showAlert('Error loading participant list.', 'danger');
       } finally {
         this.loadingParticipants = false;
+      }
+    },
+    async updateCheckIn(bookingId, checkInStatus, medicalCleared) {
+      try {
+        const res = await fetch(`/api/staff/bookings/${bookingId}/check-in`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.auth.token}`
+          },
+          body: JSON.stringify({
+            check_in_status: checkInStatus,
+            medical_cleared: medicalCleared
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          this.showAlert(data.message, 'success');
+          // Update in-place in participants array
+          const p = this.participants.find(item => item.booking_id === bookingId);
+          if (p) {
+            p.check_in_status = checkInStatus;
+            p.medical_cleared = medicalCleared;
+          }
+        } else {
+          this.showAlert(data.message || 'Check-in update failed.', 'danger');
+        }
+      } catch (err) {
+        this.showAlert('Error updating participant check-in status.', 'danger');
       }
     }
   }

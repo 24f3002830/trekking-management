@@ -135,6 +135,9 @@ def create_trek(current_user):
                 'message': f'Staff user with ID {assigned_staff_id} does not exist or is not a staff member.'
             }), 400
 
+    itinerary = data.get('itinerary', '')
+    gear_checklist = data.get('gear_checklist', '')
+
     new_trek = Trek(
         name=name,
         description=description,
@@ -144,6 +147,8 @@ def create_trek(current_user):
         total_slots=int(total_slots),
         available_slots=int(total_slots),  # Initially all slots are available
         price=float(price),
+        itinerary=itinerary.strip() if itinerary else None,
+        gear_checklist=gear_checklist.strip() if gear_checklist else None,
         assigned_staff_id=assigned_staff_id,
         status='Open',
         start_date=start_date,
@@ -190,6 +195,10 @@ def update_trek(current_user, trek_id):
         trek.price = float(data['price'])
     if 'status' in data:
         trek.status = data['status'].strip()
+    if 'itinerary' in data:
+        trek.itinerary = data['itinerary'].strip() if data['itinerary'] else None
+    if 'gear_checklist' in data:
+        trek.gear_checklist = data['gear_checklist'].strip() if data['gear_checklist'] else None
 
     if 'total_slots' in data:
         new_total = int(data['total_slots'])

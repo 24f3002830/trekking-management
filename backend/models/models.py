@@ -24,6 +24,10 @@ class User(db.Model):
     role = db.Column(db.String(20), nullable=False, default='user')  # 'admin', 'staff', 'user'
     full_name = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(20), nullable=True)
+    emergency_contact_name = db.Column(db.String(100), nullable=True)
+    emergency_contact_phone = db.Column(db.String(30), nullable=True)
+    blood_group = db.Column(db.String(10), nullable=True)
+    medical_notes = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)  # Admin can deactivate / blacklist
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -50,6 +54,10 @@ class User(db.Model):
             'role': self.role,
             'full_name': self.full_name,
             'phone': self.phone,
+            'emergency_contact_name': self.emergency_contact_name,
+            'emergency_contact_phone': self.emergency_contact_phone,
+            'blood_group': self.blood_group,
+            'medical_notes': self.medical_notes,
             'is_active': self.is_active,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None
         }
@@ -94,6 +102,8 @@ class Trek(db.Model):
     total_slots = db.Column(db.Integer, nullable=False)
     available_slots = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False, default=0.0)
+    itinerary = db.Column(db.Text, nullable=True)  # Day-wise route description
+    gear_checklist = db.Column(db.Text, nullable=True)  # Essential equipment and apparel list
     assigned_staff_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     status = db.Column(db.String(50), default='Open')  # 'Pending', 'Approved', 'Open', 'Closed', 'Completed'
     start_date = db.Column(db.Date, nullable=False)
@@ -125,6 +135,8 @@ class Trek(db.Model):
             'total_slots': self.total_slots,
             'available_slots': self.available_slots,
             'price': self.price,
+            'itinerary': self.itinerary,
+            'gear_checklist': self.gear_checklist,
             'assigned_staff_id': self.assigned_staff_id,
             'assigned_staff_name': self.assigned_staff.full_name if self.assigned_staff else None,
             'status': self.status,
@@ -153,6 +165,8 @@ class Booking(db.Model):
     payment_status = db.Column(db.String(50), default='Paid')  # 'Pending', 'Paid'
     transaction_id = db.Column(db.String(80), nullable=True)
     payment_method = db.Column(db.String(50), default='Simulated UPI')
+    check_in_status = db.Column(db.String(30), default='Pending')  # 'Pending', 'Checked In', 'No Show'
+    medical_cleared = db.Column(db.Boolean, default=True)
 
     def to_dict(self):
         return {
@@ -168,7 +182,9 @@ class Booking(db.Model):
             'status': self.status,
             'payment_status': self.payment_status,
             'transaction_id': self.transaction_id,
-            'payment_method': self.payment_method
+            'payment_method': self.payment_method,
+            'check_in_status': self.check_in_status,
+            'medical_cleared': self.medical_cleared
         }
 
 
@@ -245,6 +261,46 @@ def init_db(app):
                 pass
             try:
                 conn.execute(text("ALTER TABLE bookings ADD COLUMN payment_method VARCHAR(50) DEFAULT 'Simulated UPI'"))
+                conn.commit()
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE users ADD COLUMN emergency_contact_name VARCHAR(100)"))
+                conn.commit()
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE users ADD COLUMN emergency_contact_phone VARCHAR(30)"))
+                conn.commit()
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE users ADD COLUMN blood_group VARCHAR(10)"))
+                conn.commit()
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE users ADD COLUMN medical_notes TEXT"))
+                conn.commit()
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE treks ADD COLUMN itinerary TEXT"))
+                conn.commit()
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE treks ADD COLUMN gear_checklist TEXT"))
+                conn.commit()
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE bookings ADD COLUMN check_in_status VARCHAR(30) DEFAULT 'Pending'"))
+                conn.commit()
+            except Exception:
+                pass
+            try:
+                conn.execute(text("ALTER TABLE bookings ADD COLUMN medical_cleared BOOLEAN DEFAULT 1"))
                 conn.commit()
             except Exception:
                 pass

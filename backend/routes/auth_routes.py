@@ -216,6 +216,14 @@ def update_profile(current_user):
         current_user.full_name = full_name.strip()
     if phone is not None:
         current_user.phone = phone.strip()
+    if 'emergency_contact_name' in data:
+        current_user.emergency_contact_name = data['emergency_contact_name'].strip() if data['emergency_contact_name'] else None
+    if 'emergency_contact_phone' in data:
+        current_user.emergency_contact_phone = data['emergency_contact_phone'].strip() if data['emergency_contact_phone'] else None
+    if 'blood_group' in data:
+        current_user.blood_group = data['blood_group'].strip() if data['blood_group'] else None
+    if 'medical_notes' in data:
+        current_user.medical_notes = data['medical_notes'].strip() if data['medical_notes'] else None
 
     db.session.commit()
 
