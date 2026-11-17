@@ -1,6 +1,6 @@
-"""
-Models package initialization.
-"""
+
+#Models package initialization.
+
 
 from .models import db, User, StaffProfile, Trek, Booking, init_db
 
