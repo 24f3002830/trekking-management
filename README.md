@@ -76,12 +76,12 @@ trekking-management/
 - [x] **Milestone 1:** Database models (SQLite), programmatic schema initialization, pre-seeded Admin, and JWT RBAC authentication APIs.
 - [x] **Milestone 2:** Admin, Staff, and User API endpoints, slot management, and Redis caching.
 - [x] **Milestone 3:** Celery asynchronous tasks, periodic daily reminders, monthly reports, and CSV export.
-- [ ] **Milestone 4:** Vue.js + Bootstrap reactive frontend integration.
+- [x] **Milestone 4:** Vue.js + Bootstrap reactive frontend integration (SFC Single Page Application).
 - [ ] **Milestone 5:** End-to-end testing, validation, and final polish.
 
 ---
 
-## 💻 Running the Backend & Verification
+## 💻 Running the Application & Verification
 
 ### 1. Install Dependencies
 ```bash
@@ -101,14 +101,36 @@ pip install -r backend/requirements.txt
   ```bash
   python backend/test_milestone3.py
   ```
+- **Milestone 4 Tests (Vue.js + Bootstrap UI & SFC Components):**
+  ```bash
+  python backend/test_milestone4.py
+  ```
 
-### 3. Start the Flask Backend Server
+### 3. Start the Full-Stack Web Application
 ```bash
 python backend/app.py
 ```
+Open your browser and navigate to: **`http://127.0.0.1:5000/`**
+
 Default superuser credentials (seeded programmatically):
 - **Email:** `admin@trekking.com` (or username: `admin`)
 - **Password:** `Admin@123`
+
+---
+
+## 🖥️ Frontend Architecture & UI Components
+
+The frontend is a reactive Single Page Application (SPA) built using **Vue 3**, **Vue Router 4**, and styled exclusively with **Bootstrap 5**:
+
+| Component | Path | Description |
+| :--- | :--- | :--- |
+| **Navbar** | `frontend/src/components/Navbar.vue` | Responsive navbar with role-based navigation and profile badge |
+| **LoginView** | `frontend/src/components/LoginView.vue` | Unified login with demo quick-fill buttons for Admin, Staff, & Trekker |
+| **RegisterView**| `frontend/src/components/RegisterView.vue` | Self-registration form for Trekkers with client-side validation |
+| **TrekkerDashboard** | `frontend/src/components/TrekkerDashboard.vue`| Explore & filter treks, slot booking modal, booking history, & CSV export |
+| **StaffDashboard** | `frontend/src/components/StaffDashboard.vue` | Manage assigned treks, update status/slots, & view participant lists |
+| **AdminDashboard** | `frontend/src/components/AdminDashboard.vue` | High-level metrics, trek CRUD, staff provisioning, user moderation, & reports |
+| **ProfileView** | `frontend/src/components/ProfileView.vue` | View and update profile details (name, phone) |
 
 ### 4. Running Celery Worker & Beat (Optional for Background Batch Processing)
 ```bash

@@ -1,6 +1,7 @@
 """
 Main Flask application entry point for Trekking Management Application (TMA).
 Configures SQLite database, CORS, JWT secrets, and blueprints for Admin, Staff, Treks, and Bookings.
+Serves Jinja2 entry point for Vue.js + Bootstrap single page application (SPA).
 """
 
 import os
@@ -12,7 +13,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from backend.models import db, init_db
 from backend.routes import auth_bp, admin_bp, staff_bp, trek_bp, booking_bp
@@ -21,7 +22,12 @@ from backend.cache import get_redis_client
 
 def create_app():
     """Application factory for Trekking Management Application."""
-    app = Flask(__name__)
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(BASE_DIR, 'templates'),
+        static_folder=os.path.join(PROJECT_ROOT, 'frontend'),
+        static_url_path='/frontend'
+    )
 
     # Database configuration - SQLite only (per project specification)
     db_path = os.path.join(BASE_DIR, 'trekking.db')
@@ -57,6 +63,11 @@ def create_app():
             'version': '2.0',
             'redis_cache': redis_status
         }), 200
+
+    # Frontend Single Page Application (SPA) entry point via Jinja2
+    @app.route('/')
+    def index():
+        return render_template('index.html')
 
     return app
 
