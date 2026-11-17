@@ -79,6 +79,7 @@ trekking-management/
 - [x] **Milestone 4:** Vue.js + Bootstrap reactive frontend integration (SFC Single Page Application).
 - [x] **Milestone 5:** End-to-end testing, realistic demo seeding, packaging, and final polish.
 - [x] **Milestone 6:** Payment simulation, in-app notification center, Chart.js analytics, and comprehensive user manual.
+- [x] **Milestone 7:** Trek Reviews & 5-Star Ratings, Progressive Web App (PWA) manifest & service worker for "Add to Desktop".
 
 ---
 
@@ -99,7 +100,7 @@ Pre-populates the database with Himalayan treks across Uttarakhand, Himachal & L
 ```bash
 python run_all_tests.py
 ```
-*(Runs all milestone test suites: test_milestone1.py through test_milestone6.py consecutively).*
+*(Runs all 7 milestone test suites: test_milestone1.py through test_milestone7.py consecutively).*
 
 ### 4. Start the Full-Stack Web Application
 ```bash
@@ -161,6 +162,13 @@ celery -A backend.celery_app.celery beat --loglevel=info
 | | `POST` | `/api/treks` | Admin | Create trekking route |
 | | `PUT` | `/api/treks/<id>` | Admin | Update trek details |
 | | `DELETE` | `/api/treks/<id>` | Admin | Remove trek route |
+| | `GET` | `/api/treks/<id>/reviews` | Public | List reviews & star ratings for a trek |
+| | `POST` | `/api/treks/<id>/reviews` | Trekker | Submit star rating (1-5) and feedback |
+| **Notifications** | `GET` | `/api/notifications` | Authenticated | Fetch in-app notifications & unread count |
+| | `PUT` | `/api/notifications/<id>/read` | Authenticated | Mark notification as read |
+| | `PUT` | `/api/notifications/read-all` | Authenticated | Mark all notifications as read |
+| **PWA** | `GET` | `/manifest.json` | Public | Web app manifest for Add to Desktop |
+| | `GET` | `/sw.js` | Public | Service worker script for offline shell |
 | **Bookings**| `POST` | `/api/bookings` | Trekker | Book slots (prevents duplicate/overbooking) |
 | | `GET` | `/api/bookings/my-bookings` | Trekker | View personal booking history |
 | | `PUT` | `/api/bookings/<id>/cancel`| Owner/Admin | Cancel booking & return slots |

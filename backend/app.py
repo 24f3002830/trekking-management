@@ -69,6 +69,15 @@ def create_app():
     def index():
         return render_template('index.html')
 
+    # PWA Manifest & Service Worker root endpoints for "Add to Desktop"
+    @app.route('/manifest.json')
+    def pwa_manifest():
+        return send_from_directory(app.static_folder, 'manifest.json', mimetype='application/manifest+json')
+
+    @app.route('/sw.js')
+    def pwa_service_worker():
+        return send_from_directory(app.static_folder, 'sw.js', mimetype='application/javascript')
+
     return app
 
 

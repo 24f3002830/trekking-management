@@ -167,7 +167,25 @@ Open your browser and navigate to: **`http://127.0.0.1:5000/`**
 
 ---
 
-## 7. Celery Batch Jobs & Caching
+## 7. Trek Reviews, Ratings & Progressive Web App (PWA)
+
+### Star Ratings & Trekker Reviews
+* Trekkers can view aggregate star ratings (1 to 5 stars) and feedback on every trek card.
+* Clicking **View Reviews** opens an interactive modal with full review histories and submission capabilities:
+  * Select star rating (1 to 5).
+  * Provide trail feedback comments.
+  * Real-time calculation and display of average trek rating.
+
+### Progressive Web App (PWA) & "Add to Desktop"
+* The application conforms to modern PWA specifications with a Web App Manifest (`manifest.json`) and a dedicated Service Worker (`sw.js`).
+* Users can install the TMA application directly to their Desktop or Mobile home screen:
+  * In Chrome / Edge: Click the **Install** or **Add to Desktop** icon in the browser address bar.
+  * Launches as a standalone native window without browser address bar clutter.
+  * Static shell caching ensures fast startup.
+
+---
+
+## 8. Celery Batch Jobs & Caching
 
 ### Redis Caching
 * Frequently browsed treks (`GET /api/treks`) are cached in Redis with a 5-minute TTL.
@@ -187,9 +205,9 @@ celery -A backend.celery_app.celery beat --loglevel=info
 
 ---
 
-## 8. Automated Verification Suites
+## 9. Automated Verification Suites
 
-Run the complete test suite across all 6 milestones:
+Run the complete test suite across all 7 milestones:
 ```bash
 python run_all_tests.py
 ```
@@ -201,10 +219,11 @@ Or run individual milestone suites:
 * `python backend/test_milestone4.py` — Vue.js 3 + Bootstrap 5 Single Page Application
 * `python backend/test_milestone5.py` — Master End-to-End System Integration Checks
 * `python backend/test_milestone6.py` — Payment Simulation, Notifications & Analytics
+* `python backend/test_milestone7.py` — Reviews, 5-Star Ratings & PWA Add to Desktop
 
 ---
 
-## 9. Packaging for Submission
+## 10. Packaging for Submission
 
 Run the submission packager to create the exact archive required by the course:
 ```bash

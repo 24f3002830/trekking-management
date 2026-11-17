@@ -7,6 +7,7 @@ Runs all milestone verification suites consecutively:
 - Milestone 4: Vue.js 3 + Bootstrap 5 Single Page Application & SFC Components
 - Milestone 5: End-to-End System Integration Checks
 - Milestone 6: Payment Simulation, In-App Notifications & Interactive Analytics
+- Milestone 7: Trek Reviews & Ratings, Progressive Web App (PWA) & Add to Desktop
 """
 
 import os
@@ -22,6 +23,7 @@ from backend.test_milestone3 import run_tests as test_m3
 from backend.test_milestone4 import run_tests as test_m4
 from backend.test_milestone5 import run_e2e_tests as test_m5
 from backend.test_milestone6 import run_tests as test_m6
+from backend.test_milestone7 import run_tests as test_m7
 
 
 def main():
@@ -45,11 +47,14 @@ def main():
         print("\n🔹 [5/6] Running Milestone 5 Tests (Master E2E System Checks)...")
         test_m5()
 
-        print("\n🔹 [6/6] Running Milestone 6 Tests (Payment Simulation & Notifications)...")
+        print("\n🔹 [6/7] Running Milestone 6 Tests (Payment Simulation & Notifications)...")
         test_m6()
 
+        print("\n🔹 [7/7] Running Milestone 7 Tests (Reviews, Ratings & PWA Add to Desktop)...")
+        test_m7()
+
         print("\n" + "#"*70)
-        print("🏆 ALL 6 MILESTONE TEST SUITES COMPLETED WITH 100% SUCCESS!")
+        print("🏆 ALL 7 MILESTONE TEST SUITES COMPLETED WITH 100% SUCCESS!")
         print("#"*70 + "\n")
 
     except Exception as e:

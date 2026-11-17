@@ -5,7 +5,7 @@ Supports trek browsing, filtering, search, and Admin CRUD operations with Redis 
 
 from datetime import datetime
 from flask import Blueprint, request, jsonify
-from backend.models import db, Trek, User
+from backend.models import db, Trek, User, Review
 from backend.routes.auth_routes import token_required, role_required
 from backend.cache import get_cache, set_cache, clear_cache
 
@@ -253,3 +253,70 @@ def delete_trek(current_user, trek_id):
         'success': True,
         'message': f'Trek "{trek.name}" was successfully removed.'
     }), 200
+
+
+# ==========================================
+# TREK REVIEWS & RATINGS ENDPOINTS
+# ==========================================
+
+@trek_bp.route('/<int:trek_id>/reviews', methods=['GET'])
+def get_trek_reviews(trek_id):
+    """
+    Get all public reviews and star ratings for a specific trek.
+    """
+    trek = Trek.query.get(trek_id)
+    if not trek:
+        return jsonify({'success': False, 'message': 'Trek not found.'}), 404
+
+    reviews = Review.query.filter_by(trek_id=trek.id).order_by(Review.created_at.desc()).all()
+    return jsonify({
+        'success': True,
+        'trek_id': trek.id,
+        'trek_name': trek.name,
+        'average_rating': trek.average_rating,
+        'review_count': len(reviews),
+        'reviews': [r.to_dict() for r in reviews]
+    }), 200
+
+
+@trek_bp.route('/<int:trek_id>/reviews', methods=['POST'])
+@token_required
+def add_trek_review(current_user, trek_id):
+    """
+    Trekker submits a rating (1 to 5 stars) and review feedback for a trek.
+    """
+    trek = Trek.query.get(trek_id)
+    if not trek:
+        return jsonify({'success': False, 'message': 'Trek not found.'}), 404
+
+    data = request.get_json() or {}
+    rating = data.get('rating')
+    comment = data.get('comment', '').strip()
+
+    if rating is None:
+        return jsonify({'success': False, 'message': 'Rating is required.'}), 400
+
+    try:
+        rating = int(rating)
+        if rating < 1 or rating > 5:
+            return jsonify({'success': False, 'message': 'Rating must be between 1 and 5 stars.'}), 400
+    except ValueError:
+        return jsonify({'success': False, 'message': 'Invalid rating number.'}), 400
+
+    new_review = Review(
+        user_id=current_user.id,
+        trek_id=trek.id,
+        rating=rating,
+        comment=comment
+    )
+
+    db.session.add(new_review)
+    db.session.commit()
+    clear_cache("treks:*")
+
+    return jsonify({
+        'success': True,
+        'message': 'Thank you! Your trek review was posted successfully.',
+        'review': new_review.to_dict(),
+        'average_rating': trek.average_rating
+    }), 201

@@ -1,0 +1,24 @@
+{
+  "name": "Trekking Management Application (TMA)",
+  "short_name": "Trekking TMA",
+  "description": "Multi-role Trekking Management Platform for Trekkers, Staff, and Administrators.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f9fa",
+  "theme_color": "#198754",
+  "icons": [
+    {
+      "src": "/frontend/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/frontend/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

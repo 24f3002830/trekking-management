@@ -102,6 +102,17 @@ class Trek(db.Model):
 
     # Relationship with bookings
     bookings = db.relationship('Booking', backref='trek', lazy=True, cascade='all, delete-orphan')
+    reviews = db.relationship('Review', backref='trek', lazy=True, cascade='all, delete-orphan')
+
+    @property
+    def average_rating(self):
+        if not self.reviews:
+            return 5.0
+        return round(sum(r.rating for r in self.reviews) / len(self.reviews), 1)
+
+    @property
+    def review_count(self):
+        return len(self.reviews)
 
     def to_dict(self):
         return {
@@ -117,6 +128,8 @@ class Trek(db.Model):
             'assigned_staff_id': self.assigned_staff_id,
             'assigned_staff_name': self.assigned_staff.full_name if self.assigned_staff else None,
             'status': self.status,
+            'average_rating': self.average_rating,
+            'review_count': self.review_count,
             'start_date': self.start_date.strftime('%Y-%m-%d') if self.start_date else None,
             'end_date': self.end_date.strftime('%Y-%m-%d') if self.end_date else None,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None
@@ -181,6 +194,34 @@ class Notification(db.Model):
             'message': self.message,
             'notification_type': self.notification_type,
             'is_read': self.is_read,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None
+        }
+
+
+class Review(db.Model):
+    """
+    Trekker reviews and star ratings (1 to 5) for treks.
+    """
+    __tablename__ = 'reviews'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    trek_id = db.Column(db.Integer, db.ForeignKey('treks.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)  # 1 to 5 stars
+    comment = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship with user
+    user = db.relationship('User', backref=db.backref('reviews', lazy=True, cascade='all, delete-orphan'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'user_name': self.user.full_name if self.user else 'Anonymous Trekker',
+            'trek_id': self.trek_id,
+            'rating': self.rating,
+            'comment': self.comment,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S') if self.created_at else None
         }
 

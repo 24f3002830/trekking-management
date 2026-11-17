@@ -102,7 +102,13 @@
             </div>
 
             <div class="card-body">
-              <h5 class="card-title fw-bold text-dark">{{ trek.name }}</h5>
+              <h5 class="card-title fw-bold text-dark mb-1">{{ trek.name }}</h5>
+              <div class="d-flex align-items-center mb-2">
+                <span class="text-warning me-1"><i class="bi bi-star-fill"></i></span>
+                <span class="fw-bold small me-1">{{ trek.average_rating || 5.0 }}</span>
+                <span class="text-muted small">({{ trek.review_count || 0 }} reviews)</span>
+                <button class="btn btn-link btn-sm text-decoration-none p-0 ms-2" @click="openReviewsModal(trek)">View Reviews</button>
+              </div>
               <p class="text-muted small mb-2">
                 <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ trek.location }}
               </p>
@@ -276,6 +282,69 @@
         </div>
       </div>
     </div>
+
+    <!-- TREK REVIEWS & RATINGS MODAL -->
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" v-if="reviewTrek">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title"><i class="bi bi-star-fill me-2"></i>Reviews: {{ reviewTrek.name }}</h5>
+            <button type="button" class="btn-close" @click="reviewTrek = null"></button>
+          </div>
+          <div class="modal-body p-4">
+            <!-- Review Submission Form (if logged in) -->
+            <div v-if="auth.isAuthenticated()" class="card bg-light border-0 p-3 mb-4">
+              <h6 class="fw-bold mb-2">Leave a Review</h6>
+              <div class="mb-2">
+                <label class="form-label small mb-1">Rating</label>
+                <select v-model.number="newReview.rating" class="form-select form-select-sm">
+                  <option :value="5">⭐⭐⭐⭐⭐ (5 Stars - Outstanding)</option>
+                  <option :value="4">⭐⭐⭐⭐ (4 Stars - Very Good)</option>
+                  <option :value="3">⭐⭐⭐ (3 Stars - Good)</option>
+                  <option :value="2">⭐⭐ (2 Stars - Needs Improvement)</option>
+                  <option :value="1">⭐ (1 Star - Poor)</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label small mb-1">Feedback Comment</label>
+                <textarea v-model="newReview.comment" class="form-control form-control-sm" rows="2" placeholder="Share your experience on this trail..."></textarea>
+              </div>
+              <button class="btn btn-warning btn-sm fw-bold align-self-end" :disabled="submittingReview" @click="submitReview">
+                <span v-if="submittingReview" class="spinner-border spinner-border-sm me-1"></span>
+                Post Review
+              </button>
+            </div>
+            <div v-else class="alert alert-info py-2 small mb-4">
+              <router-link to="/login">Log in</router-link> as a Trekker to write a review.
+            </div>
+
+            <!-- Existing Reviews List -->
+            <h6 class="fw-bold mb-3">Trekker Feedback ({{ trekReviews.length }})</h6>
+            <div v-if="loadingReviews" class="text-center py-3">
+              <div class="spinner-border spinner-border-sm text-warning"></div>
+            </div>
+            <div v-else-if="trekReviews.length === 0" class="text-center py-3 text-muted small">
+              No reviews yet. Be the first to share your experience!
+            </div>
+            <div v-else class="list-group list-group-flush">
+              <div v-for="r in trekReviews" :key="r.id" class="list-group-item px-0 py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-semibold small">{{ r.user_name }}</span>
+                  <span class="text-warning small">
+                    <span v-for="star in r.rating" :key="star">★</span>
+                  </span>
+                </div>
+                <p class="small text-secondary mb-1">{{ r.comment || 'No written comment.' }}</p>
+                <small class="text-muted" style="font-size: 0.7rem;">{{ r.created_at }}</small>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-secondary" @click="reviewTrek = null">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -295,6 +364,11 @@ export default {
       bookingSlots: 1,
       paymentMethod: 'Simulated UPI (GooglePay / PhonePe)',
       bookingInProgress: false,
+      reviewTrek: null,
+      trekReviews: [],
+      loadingReviews: false,
+      submittingReview: false,
+      newReview: { rating: 5, comment: '' },
       alertMessage: '',
       alertType: 'success',
       filters: {
@@ -463,6 +537,50 @@ export default {
         this.showAlert('Error exporting CSV.', 'danger');
       } finally {
         this.exportingCsv = false;
+      }
+    },
+    async openReviewsModal(trek) {
+      this.reviewTrek = trek;
+      this.loadingReviews = true;
+      this.trekReviews = [];
+      this.newReview = { rating: 5, comment: '' };
+      try {
+        const res = await fetch(`/api/treks/${trek.id}/reviews`);
+        const data = await res.json();
+        if (res.ok && data.success) {
+          this.trekReviews = data.reviews;
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        this.loadingReviews = false;
+      }
+    },
+    async submitReview() {
+      if (!this.reviewTrek || !this.auth.isAuthenticated()) return;
+      this.submittingReview = true;
+      try {
+        const res = await fetch(`/api/treks/${this.reviewTrek.id}/reviews`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.auth.token}`
+          },
+          body: JSON.stringify(this.newReview)
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          this.showAlert(data.message, 'success');
+          this.newReview.comment = '';
+          this.openReviewsModal(this.reviewTrek);
+          this.fetchTreks();
+        } else {
+          this.showAlert(data.message || 'Review submission failed.', 'danger');
+        }
+      } catch (err) {
+        this.showAlert('Error posting review.', 'danger');
+      } finally {
+        this.submittingReview = false;
       }
     }
   }
