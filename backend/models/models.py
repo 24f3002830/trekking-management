@@ -71,9 +71,9 @@ class StaffProfile(db.Model):
 
 
 class Trek(db.Model):
-    """
-    Trek model representing a trekking expedition/route.
-    """
+    
+    #Trek model representing a trekking expedition/route.
+    
     __tablename__ = 'treks'
 
     id = db.Column(db.Integer, primary_key=True)
