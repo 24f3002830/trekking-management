@@ -1,7 +1,3 @@
-"""
-Database models for Trekking Management Application (TMA) - V2.
-Uses Flask-SQLAlchemy with SQLite.
-"""
 
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
@@ -11,9 +7,7 @@ db = SQLAlchemy()
 
 
 class User(db.Model):
-    """
-    Unified User model supporting all roles: 'admin', 'staff', and 'user' (trekker).
-    """
+
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -54,9 +48,8 @@ class User(db.Model):
 
 
 class StaffProfile(db.Model):
-    """
-    Staff Profile containing specialized details for trek guides/staff.
-    """
+    #Staff Profile containing specialized details for trek guides/staff.
+    
     __tablename__ = 'staff_profiles'
 
     id = db.Column(db.Integer, primary_key=True)
