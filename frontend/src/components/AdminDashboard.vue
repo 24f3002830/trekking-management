@@ -206,6 +206,16 @@
 
     <!-- ===================== TAB: REPORTS ===================== -->
     <div v-if="currentTab === 'reports'">
+      <!-- Chart.js Visualization Card (Recommended Functionality) -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-line-fill text-primary me-2"></i>Trek Analytics & Slot Utilization (ChartJS)</h6>
+        </div>
+        <div class="card-body">
+          <canvas id="analyticsChart" style="max-height: 280px;"></canvas>
+        </div>
+      </div>
+
       <div class="row g-3 mb-4">
         <div class="col-md-6">
           <div class="card border-0 shadow-sm">
@@ -478,7 +488,51 @@ export default {
     async loadReports() {
       const res = await this.apiFetch('/api/admin/reports');
       const data = await res.json();
-      if (data.success) this.reports = data;
+      if (data.success) {
+        this.reports = data;
+        this.$nextTick(() => { this.renderChart(); });
+      }
+    },
+    renderChart() {
+      if (typeof Chart === 'undefined') return;
+      const canvas = document.getElementById('analyticsChart');
+      if (!canvas) return;
+      if (this.chartInstance) {
+        this.chartInstance.destroy();
+      }
+      const labels = (this.reports.popular_treks || []).map(t => t.name);
+      const bookedData = (this.reports.popular_treks || []).map(t => t.slots_booked);
+      const totalData = (this.reports.popular_treks || []).map(t => t.total_slots);
+
+      this.chartInstance = new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: labels.length ? labels : ['No Treks'],
+          datasets: [
+            {
+              label: 'Slots Booked',
+              data: bookedData.length ? bookedData : [0],
+              backgroundColor: '#198754'
+            },
+            {
+              label: 'Total Capacity',
+              data: totalData.length ? totalData : [0],
+              backgroundColor: '#0d6efd'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Trek Popularity & Capacity Utilization' }
+          },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
     },
     getDiffBadge(d) {
       if (d === 'Easy') return 'badge-easy';

@@ -77,7 +77,7 @@ trekking-management/
 - [x] **Milestone 2:** Admin, Staff, and User API endpoints, slot management, and Redis caching.
 - [x] **Milestone 3:** Celery asynchronous tasks, periodic daily reminders, monthly reports, and CSV export.
 - [x] **Milestone 4:** Vue.js + Bootstrap reactive frontend integration (SFC Single Page Application).
-- [ ] **Milestone 5:** End-to-end testing, validation, and final polish.
+- [x] **Milestone 5:** End-to-end testing, realistic demo seeding, packaging, and final polish.
 
 ---
 
@@ -88,25 +88,19 @@ trekking-management/
 pip install -r backend/requirements.txt
 ```
 
-### 2. Run Automated Verification Tests
-- **Milestone 1 Tests (Models & Authentication):**
-  ```bash
-  python backend/test_milestone1.py
-  ```
-- **Milestone 2 Tests (CRUD, RBAC, Bookings, & Redis Caching):**
-  ```bash
-  python backend/test_milestone2.py
-  ```
-- **Milestone 3 Tests (Celery Tasks & Batch Jobs):**
-  ```bash
-  python backend/test_milestone3.py
-  ```
-- **Milestone 4 Tests (Vue.js + Bootstrap UI & SFC Components):**
-  ```bash
-  python backend/test_milestone4.py
-  ```
+### 2. Populate Realistic Demo Data (Optional but Recommended)
+```bash
+python backend/seed_data.py
+```
+Pre-populates the database with Himalayan treks across Uttarakhand, Himachal & Ladakh, certified staff members, sample trekkers, and bookings.
 
-### 3. Start the Full-Stack Web Application
+### 3. Run All Automated Verification Tests Consecutively
+```bash
+python run_all_tests.py
+```
+*(Runs all milestone test suites: test_milestone1.py through test_milestone5.py).*
+
+### 4. Start the Full-Stack Web Application
 ```bash
 python backend/app.py
 ```
@@ -115,6 +109,12 @@ Open your browser and navigate to: **`http://127.0.0.1:5000/`**
 Default superuser credentials (seeded programmatically):
 - **Email:** `admin@trekking.com` (or username: `admin`)
 - **Password:** `Admin@123`
+
+### 5. Packaging the Project for Submission
+```bash
+python package_submission.py
+```
+Generates `trekking_management_24f3002830.zip` adhering strictly to the folder structure required for MAD-2 evaluation.
 
 ---
 

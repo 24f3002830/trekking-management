@@ -90,5 +90,6 @@ backend/exports/*.csv
 reports/*.html
 backend/reports/*.html
 *.log
+*.zip
 temp/
 tmp/
