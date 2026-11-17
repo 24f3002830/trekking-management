@@ -73,8 +73,30 @@ trekking-management/
 ## 🚀 Milestone Progress
 
 - [x] **Milestone 0:** GitHub Repository Setup, initial directory structure, `.gitignore`, and `README.md`.
-- [ ] **Milestone 1:** Database models, programmatic schema initialization, and authentication APIs.
+- [x] **Milestone 1:** Database models (SQLite), programmatic schema initialization, pre-seeded Admin, and JWT RBAC authentication APIs.
 - [ ] **Milestone 2:** Admin, Staff, and User API endpoints and Redis caching.
 - [ ] **Milestone 3:** Celery asynchronous tasks and scheduled periodic jobs.
 - [ ] **Milestone 4:** Vue.js + Bootstrap reactive frontend integration.
 - [ ] **Milestone 5:** End-to-end testing, validation, and final polish.
+
+---
+
+## 💻 Running the Backend & Verification
+
+### 1. Install Dependencies
+```bash
+pip install -r backend/requirements.txt
+```
+
+### 2. Run Automated Verification Tests
+```bash
+python backend/test_milestone1.py
+```
+
+### 3. Start the Flask Backend Server
+```bash
+python backend/app.py
+```
+Default superuser credentials (seeded programmatically):
+- **Email:** `admin@trekking.com` (or username: `admin`)
+- **Password:** `Admin@123`
