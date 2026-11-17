@@ -10,7 +10,6 @@ Tests:
 7. Service Worker verification for 'Add to Desktop' functionality
 8. Frontend template & component review/PWA integration check
 """
-
 import sys
 import os
 import json
