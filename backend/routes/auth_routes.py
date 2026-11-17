@@ -13,9 +13,7 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 
 def generate_token(user):
-    """
-    Generate a JWT token with user ID, role, and expiration.
-    """
+    #Generate a JWT token with user ID, role, and expiration.
     secret_key = current_app.config.get('SECRET_KEY', 'default-jwt-secret-key-mad2')
     payload = {
         'user_id': user.id,
