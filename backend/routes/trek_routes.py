@@ -71,9 +71,9 @@ def get_all_treks():
 
 @trek_bp.route('/<int:trek_id>', methods=['GET'])
 def get_trek(trek_id):
-    """
-    Get detailed information for a single trek.
-    """
+    
+    #Get detailed information for a single trek.
+    
     trek = Trek.query.get(trek_id)
     if not trek:
         return jsonify({'success': False, 'message': 'Trek not found.'}), 404
