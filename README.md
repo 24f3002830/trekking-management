@@ -74,7 +74,7 @@ trekking-management/
 
 - [x] **Milestone 0:** GitHub Repository Setup, initial directory structure, `.gitignore`, and `README.md`.
 - [x] **Milestone 1:** Database models (SQLite), programmatic schema initialization, pre-seeded Admin, and JWT RBAC authentication APIs.
-- [ ] **Milestone 2:** Admin, Staff, and User API endpoints and Redis caching.
+- [x] **Milestone 2:** Admin, Staff, and User API endpoints, slot management, and Redis caching.
 - [ ] **Milestone 3:** Celery asynchronous tasks and scheduled periodic jobs.
 - [ ] **Milestone 4:** Vue.js + Bootstrap reactive frontend integration.
 - [ ] **Milestone 5:** End-to-end testing, validation, and final polish.
@@ -89,9 +89,14 @@ pip install -r backend/requirements.txt
 ```
 
 ### 2. Run Automated Verification Tests
-```bash
-python backend/test_milestone1.py
-```
+- **Milestone 1 Tests (Models & Authentication):**
+  ```bash
+  python backend/test_milestone1.py
+  ```
+- **Milestone 2 Tests (CRUD, RBAC, Bookings, & Redis Caching):**
+  ```bash
+  python backend/test_milestone2.py
+  ```
 
 ### 3. Start the Flask Backend Server
 ```bash
@@ -100,3 +105,34 @@ python backend/app.py
 Default superuser credentials (seeded programmatically):
 - **Email:** `admin@trekking.com` (or username: `admin`)
 - **Password:** `Admin@123`
+
+---
+
+## 🔌 API Endpoints Summary
+
+| Blueprint | Method | Endpoint | Access | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Auth** | `POST` | `/api/auth/register` | Public | Trekker self-registration |
+| | `POST` | `/api/auth/login` | Public | Unified login (Admin, Staff, Trekker) |
+| | `GET` | `/api/auth/profile` | Authenticated | View current profile |
+| | `PUT` | `/api/auth/profile` | Authenticated | Update current profile |
+| **Treks** | `GET` | `/api/treks` | Public | List & search/filter treks (Cached) |
+| | `GET` | `/api/treks/<id>` | Public | View single trek details |
+| | `POST` | `/api/treks` | Admin | Create trekking route |
+| | `PUT` | `/api/treks/<id>` | Admin | Update trek details |
+| | `DELETE` | `/api/treks/<id>` | Admin | Remove trek route |
+| **Bookings**| `POST` | `/api/bookings` | Trekker | Book slots (prevents duplicate/overbooking) |
+| | `GET` | `/api/bookings/my-bookings` | Trekker | View personal booking history |
+| | `PUT` | `/api/bookings/<id>/cancel`| Owner/Admin | Cancel booking & return slots |
+| **Staff** | `GET` | `/api/staff/dashboard` | Staff | View assigned treks & participant counts |
+| | `GET` | `/api/staff/treks/<id>/participants` | Staff/Admin | View participants for assigned trek |
+| | `PUT` | `/api/staff/treks/<id>/status` | Staff/Admin | Update status (Open/Started/Completed) |
+| | `PUT` | `/api/staff/treks/<id>/slots` | Staff/Admin | Update available slot capacity |
+| **Admin** | `GET` | `/api/admin/dashboard` | Admin | Overall metrics & recent activity |
+| | `GET` | `/api/admin/users` | Admin | Search users & filter by role/status |
+| | `PUT` | `/api/admin/users/<id>/status` | Admin | Deactivate / blacklist / reactivate user |
+| | `POST` | `/api/admin/staff` | Admin | Add new Trek Staff with profile |
+| | `GET` | `/api/admin/staff` | Admin | List all staff & assigned trek counts |
+| | `PUT` | `/api/admin/treks/<id>/assign-staff` | Admin | Assign staff to a trek |
+| | `GET` | `/api/admin/bookings` | Admin | View all system-wide bookings |
+| | `GET` | `/api/admin/reports` | Admin | Aggregated trekking statistics |

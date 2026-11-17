@@ -1,6 +1,6 @@
 """
 Main Flask application entry point for Trekking Management Application (TMA).
-Configures SQLite database, CORS, JWT secrets, and blueprints.
+Configures SQLite database, CORS, JWT secrets, and blueprints for Admin, Staff, Treks, and Bookings.
 """
 
 import os
@@ -15,7 +15,8 @@ if PROJECT_ROOT not in sys.path:
 from flask import Flask, jsonify
 from flask_cors import CORS
 from backend.models import db, init_db
-from backend.routes import auth_bp
+from backend.routes import auth_bp, admin_bp, staff_bp, trek_bp, booking_bp
+from backend.cache import get_redis_client
 
 
 def create_app():
@@ -38,6 +39,10 @@ def create_app():
 
     # Register API blueprints
     app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(staff_bp)
+    app.register_blueprint(trek_bp)
+    app.register_blueprint(booking_bp)
 
     # Programmatically create database tables and seed initial Admin
     init_db(app)
@@ -45,10 +50,12 @@ def create_app():
     # Health check route
     @app.route('/api/health', methods=['GET'])
     def health_check():
+        redis_status = "connected" if get_redis_client() else "offline (database fallback active)"
         return jsonify({
             'success': True,
             'message': 'Trekking Management API is running healthy.',
-            'version': '2.0'
+            'version': '2.0',
+            'redis_cache': redis_status
         }), 200
 
     return app
