@@ -158,9 +158,8 @@ def run_tests():
     print("✅ Test 9 Passed: Frontend UI components verified (Profile, Staff, Trekker).")
 
     print("\n" + "="*65)
-    print("🎉 ALL 9 MILESTONE 8 TESTS PASSED SUCCESSFULLY!")
+    print(" ALL 9 MILESTONE 8 TESTS PASSED SUCCESSFULLY!")
     print("="*65 + "\n")
-
 
 if __name__ == '__main__':
     run_tests()
