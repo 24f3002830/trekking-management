@@ -86,5 +86,9 @@ Thumbs.db
 
 # Output exports / temporary artifacts
 exports/*.csv
+backend/exports/*.csv
+reports/*.html
+backend/reports/*.html
+*.log
 temp/
 tmp/

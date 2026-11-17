@@ -1,15 +1,20 @@
 """
 Booking Routes for Trekking Management Application.
-Handles slot reservation, overbooking prevention, duplicate booking checks, and cancellation.
+Handles slot reservation, overbooking prevention, duplicate booking checks, cancellation,
+and User Triggered Async CSV Export of trekking history.
 """
 
+import os
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_from_directory
 from backend.models import db, Booking, Trek
 from backend.routes.auth_routes import token_required
 from backend.cache import clear_cache
 
 booking_bp = Blueprint('bookings', __name__, url_prefix='/api/bookings')
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+EXPORTS_DIR = os.path.join(BASE_DIR, 'exports')
 
 
 @booking_bp.route('', methods=['POST'])
@@ -18,7 +23,6 @@ def create_booking(current_user):
     """
     Trekker books a trek with slot validation and concurrency/overbooking safeguards.
     """
-    # Only users (trekkers) should book treks
     if current_user.role != 'user':
         return jsonify({
             'success': False,
@@ -39,7 +43,6 @@ def create_booking(current_user):
     except ValueError:
         return jsonify({'success': False, 'message': 'slots_booked must be a positive integer.'}), 400
 
-    # Fetch trek
     trek = Trek.query.get(trek_id)
     if not trek:
         return jsonify({'success': False, 'message': 'Trek not found.'}), 404
@@ -51,7 +54,7 @@ def create_booking(current_user):
             'message': f'Bookings are currently unavailable for this trek (status: {trek.status}).'
         }), 400
 
-    # 2. Check if user has already booked this trek (Prevent duplicate bookings)
+    # 2. Prevent duplicate bookings for same trek
     existing_booking = Booking.query.filter_by(
         user_id=current_user.id,
         trek_id=trek.id,
@@ -88,7 +91,6 @@ def create_booking(current_user):
     db.session.add(new_booking)
     db.session.commit()
 
-    # Clear cached trek list so slot count is immediately fresh
     clear_cache("treks:*")
 
     return jsonify({
@@ -117,13 +119,11 @@ def get_my_bookings(current_user):
 def get_booking(current_user, booking_id):
     """
     Get details of a specific booking.
-    Accessible by the booking owner, assigned staff, or admin.
     """
     booking = Booking.query.get(booking_id)
     if not booking:
         return jsonify({'success': False, 'message': 'Booking not found.'}), 404
 
-    # Permission check: must be owner, staff of that trek, or admin
     is_owner = (booking.user_id == current_user.id)
     is_admin = (current_user.role == 'admin')
     is_assigned_staff = (booking.trek.assigned_staff_id == current_user.id)
@@ -142,7 +142,6 @@ def get_booking(current_user, booking_id):
 def cancel_booking(current_user, booking_id):
     """
     Cancel an active booking and restore slots to the trek.
-    Trekker can cancel their own booking; Admin can cancel any booking.
     """
     booking = Booking.query.get(booking_id)
     if not booking:
@@ -170,3 +169,57 @@ def cancel_booking(current_user, booking_id):
         'message': f'Booking #{booking.id} for "{trek.name}" was successfully cancelled. {booking.slots_booked} slot(s) returned.',
         'booking': booking.to_dict()
     }), 200
+
+
+@booking_bp.route('/export-csv', methods=['POST'])
+@token_required
+def trigger_export_csv(current_user):
+    """
+    User Triggered Async Job:
+    Triggers CSV export of the user's trekking and booking history.
+    Uses Celery background task with immediate execution fallback.
+    """
+    from backend.cache import get_redis_client
+    from backend.tasks import export_booking_history_csv
+
+    # If Redis is active, dispatch via Celery background worker
+    if get_redis_client():
+        try:
+            task = export_booking_history_csv.apply_async(args=[current_user.id], retry=False)
+            return jsonify({
+                'success': True,
+                'mode': 'async (Celery)',
+                'task_id': task.id,
+                'message': 'Export job initiated. You will receive an alert once generated.'
+            }), 202
+        except Exception as e:
+            print(f"⚠️ Celery dispatch failed: {e}. Executing directly.")
+
+    # Synchronous direct execution fallback
+    result = export_booking_history_csv(current_user.id)
+    return jsonify({
+        'success': True,
+        'mode': 'sync-fallback',
+        'message': 'Booking history exported successfully.',
+        'export': result
+    }), 200
+
+
+@booking_bp.route('/export/<filename>', methods=['GET'])
+@token_required
+def download_export_file(current_user, filename):
+    """
+    Download a previously exported booking history CSV.
+    Ensures user can only download their own export file (or Admin can download any).
+    """
+    # Filename format: booking_history_user_<user_id>_<timestamp>.csv
+    if current_user.role != 'admin':
+        expected_prefix = f"booking_history_user_{current_user.id}_"
+        if not filename.startswith(expected_prefix):
+            return jsonify({'success': False, 'message': 'Access forbidden: unauthorized export file.'}), 403
+
+    file_path = os.path.join(EXPORTS_DIR, filename)
+    if not os.path.exists(file_path):
+        return jsonify({'success': False, 'message': 'Export file not found.'}), 404
+
+    return send_from_directory(EXPORTS_DIR, filename, as_attachment=True, mimetype='text/csv')

@@ -304,3 +304,102 @@ def view_reports(current_user):
         'total_participants': total_participants,
         'popular_treks': popular_treks[:5]
     }), 200
+
+
+@admin_bp.route('/trigger-monthly-report', methods=['POST'])
+@token_required
+@role_required(['admin'])
+def trigger_monthly_report(current_user):
+    """
+    Admin triggers monthly activity report generation (batch job).
+    """
+    from backend.cache import get_redis_client
+    from backend.tasks import generate_monthly_activity_report
+
+    if get_redis_client():
+        try:
+            task = generate_monthly_activity_report.apply_async(retry=False)
+            return jsonify({
+                'success': True,
+                'mode': 'async',
+                'task_id': task.id,
+                'message': 'Monthly activity report generation job started.'
+            }), 202
+        except Exception as e:
+            print(f"⚠️ Celery dispatch failed: {e}. Executing directly.")
+
+    result = generate_monthly_activity_report()
+    return jsonify({
+        'success': True,
+        'mode': 'sync',
+        'message': 'Monthly activity report generated successfully.',
+        'report': result
+    }), 200
+
+
+@admin_bp.route('/trigger-daily-reminders', methods=['POST'])
+@token_required
+@role_required(['admin'])
+def trigger_daily_reminders(current_user):
+    """
+    Admin triggers daily upcoming trek reminders job.
+    """
+    from backend.cache import get_redis_client
+    from backend.tasks import send_daily_reminders
+
+    if get_redis_client():
+        try:
+            task = send_daily_reminders.apply_async(retry=False)
+            return jsonify({
+                'success': True,
+                'mode': 'async',
+                'task_id': task.id,
+                'message': 'Daily reminders job dispatched.'
+            }), 202
+        except Exception as e:
+            print(f"⚠️ Celery dispatch failed: {e}. Executing directly.")
+
+    result = send_daily_reminders()
+    return jsonify({
+        'success': True,
+        'mode': 'sync',
+        'message': 'Daily reminders executed successfully.',
+        'summary': result
+    }), 200
+
+
+@admin_bp.route('/reports/monthly', methods=['GET'])
+@token_required
+@role_required(['admin'])
+def list_monthly_reports(current_user):
+    """
+    List all generated monthly activity reports.
+    """
+    import os
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    reports_dir = os.path.join(base_dir, 'reports')
+    os.makedirs(reports_dir, exist_ok=True)
+
+    files = [f for f in os.listdir(reports_dir) if f.endswith('.html')]
+    return jsonify({
+        'success': True,
+        'reports': files
+    }), 200
+
+
+@admin_bp.route('/reports/monthly/<filename>', methods=['GET'])
+@token_required
+@role_required(['admin'])
+def view_monthly_report_file(current_user, filename):
+    """
+    View or download a specific generated monthly HTML report.
+    """
+    import os
+    from flask import send_from_directory
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    reports_dir = os.path.join(base_dir, 'reports')
+
+    if not os.path.exists(os.path.join(reports_dir, filename)):
+        return jsonify({'success': False, 'message': 'Report not found.'}), 404
+
+    return send_from_directory(reports_dir, filename)

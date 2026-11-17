@@ -75,7 +75,7 @@ trekking-management/
 - [x] **Milestone 0:** GitHub Repository Setup, initial directory structure, `.gitignore`, and `README.md`.
 - [x] **Milestone 1:** Database models (SQLite), programmatic schema initialization, pre-seeded Admin, and JWT RBAC authentication APIs.
 - [x] **Milestone 2:** Admin, Staff, and User API endpoints, slot management, and Redis caching.
-- [ ] **Milestone 3:** Celery asynchronous tasks and scheduled periodic jobs.
+- [x] **Milestone 3:** Celery asynchronous tasks, periodic daily reminders, monthly reports, and CSV export.
 - [ ] **Milestone 4:** Vue.js + Bootstrap reactive frontend integration.
 - [ ] **Milestone 5:** End-to-end testing, validation, and final polish.
 
@@ -97,6 +97,10 @@ pip install -r backend/requirements.txt
   ```bash
   python backend/test_milestone2.py
   ```
+- **Milestone 3 Tests (Celery Tasks & Batch Jobs):**
+  ```bash
+  python backend/test_milestone3.py
+  ```
 
 ### 3. Start the Flask Backend Server
 ```bash
@@ -105,6 +109,16 @@ python backend/app.py
 Default superuser credentials (seeded programmatically):
 - **Email:** `admin@trekking.com` (or username: `admin`)
 - **Password:** `Admin@123`
+
+### 4. Running Celery Worker & Beat (Optional for Background Batch Processing)
+```bash
+# Start Celery Worker
+celery -A backend.celery_app.celery worker --loglevel=info
+
+# Start Celery Beat (Periodic Scheduler)
+celery -A backend.celery_app.celery beat --loglevel=info
+```
+*(Note: If Redis or Celery is offline, TMA automatically executes background batch jobs via built-in synchronous fallbacks so that local evaluation and demonstrations run without external services).*
 
 ---
 
