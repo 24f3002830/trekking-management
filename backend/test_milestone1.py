@@ -1,14 +1,4 @@
-"""
-Milestone 1 Automated Verification Script for Trekking Management Application.
-Tests:
-1. Programmatic SQLite creation
-2. Pre-seeded Admin existence
-3. User (Trekker) registration
-4. Login & JWT token issuance for Admin & Trekker
-5. Protected route verification (@token_required)
-6. Role-Based Access Control (@role_required)
-7. Deactivation / Blacklisting rejection
-"""
+
 
 import sys
 import os
