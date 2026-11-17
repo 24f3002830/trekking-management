@@ -53,7 +53,7 @@ def main():
         print("#"*70 + "\n")
 
     except Exception as e:
-        print(f"\n❌ Test suite failed with error: {e}")
+        print(f"\n Test suite failed with error: {e}")
         sys.exit(1)
 
 
