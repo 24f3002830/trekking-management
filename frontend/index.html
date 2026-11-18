@@ -7,7 +7,7 @@
 
     <!-- PWA & Mobile Add to Desktop Metadata -->
     <link rel="manifest" href="/frontend/manifest.json">
-    <meta name="theme-color" content="#198754">
+    <meta name="theme-color" content="#1F6F5C">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -26,30 +26,269 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 
     <style>
+        :root {
+            /* Backgrounds (theme.md) */
+            --bg-page: #FAFAF7;
+            --surface-card: #FFFFFF;
+            --border-color: #E5E3DC;
+
+            /* Text (theme.md) */
+            --text-main: #1F2421;
+            --text-muted: #5F665F;
+            --text-on-accent: #FFFFFF;
+
+            /* Accent (theme.md) */
+            --accent: #1F6F5C;
+            --accent-hover: #185A4B;
+            --accent-tint: #E4F1ED;
+
+            /* Status (theme.md) */
+            --status-success: #2E7D32;
+            --status-warning: #B26A00;
+            --status-error: #C62828;
+        }
+
         body {
-            background-color: #f8f9fa;
+            background-color: var(--bg-page);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
+
         .main-content {
             flex: 1;
         }
-        .hero-banner {
-            background: linear-gradient(135deg, #198754 0%, #0d6efd 100%);
-            color: white;
-            padding: 2.5rem 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 2rem;
+
+        /* Headings and Typography */
+        h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+            color: var(--text-main);
         }
-        .badge-easy { background-color: #198754; color: white; }
-        .badge-moderate { background-color: #fd7e14; color: white; }
-        .badge-hard { background-color: #dc3545; color: white; }
-        .footer-custom {
-            background: #212529;
-            color: #adb5bd;
-            padding: 1.5rem 0;
-            margin-top: 3rem;
+        .text-muted, .text-secondary {
+            color: var(--text-muted) !important;
+        }
+        .text-primary, .text-success-accent {
+            color: var(--accent) !important;
+        }
+
+        /* Cards & Surfaces */
+        .card {
+            background-color: var(--surface-card) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 0.65rem;
+            box-shadow: 0 1px 3px rgba(31, 36, 33, 0.04) !important;
+        }
+        .card-header, .card-footer {
+            background-color: var(--surface-card) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        /* Modals */
+        .modal-content {
+            background-color: var(--surface-card) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 0.75rem;
+            color: var(--text-main);
+        }
+        .modal-header, .modal-footer {
+            border-color: var(--border-color) !important;
+        }
+
+        /* Accent Primary Buttons */
+        .btn-primary, .btn-success {
+            background-color: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: var(--text-on-accent) !important;
+        }
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active,
+        .btn-success:hover, .btn-success:focus, .btn-success:active {
+            background-color: var(--accent-hover) !important;
+            border-color: var(--accent-hover) !important;
+            color: var(--text-on-accent) !important;
+        }
+
+        .btn-outline-primary, .btn-outline-success {
+            color: var(--accent) !important;
+            border-color: var(--accent) !important;
+            background-color: transparent !important;
+        }
+        .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active,
+        .btn-outline-success:hover, .btn-outline-success:focus, .btn-outline-success:active {
+            background-color: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: var(--text-on-accent) !important;
+        }
+
+        .btn-outline-secondary {
+            color: var(--text-main) !important;
+            border-color: var(--border-color) !important;
+            background-color: var(--surface-card) !important;
+        }
+        .btn-outline-secondary:hover {
+            background-color: var(--accent-tint) !important;
+            color: var(--accent) !important;
+            border-color: var(--accent) !important;
+        }
+
+        /* Status Buttons */
+        .btn-danger {
+            background-color: var(--status-error) !important;
+            border-color: var(--status-error) !important;
+            color: #FFFFFF !important;
+        }
+        .btn-danger:hover {
+            background-color: #A31F1F !important;
+            border-color: #A31F1F !important;
+        }
+        .btn-outline-danger {
+            color: var(--status-error) !important;
+            border-color: var(--status-error) !important;
+            background-color: transparent !important;
+        }
+        .btn-outline-danger:hover {
+            background-color: var(--status-error) !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Forms */
+        .form-control, .form-select {
+            background-color: var(--surface-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 0.2rem rgba(31, 111, 92, 0.18);
+            background-color: var(--surface-card);
+            color: var(--text-main);
+        }
+        .input-group-text {
+            background-color: var(--accent-tint);
+            border-color: var(--border-color);
+            color: var(--accent);
+        }
+
+        /* Nav Pills & Tabs */
+        .nav-pills .nav-link {
+            color: var(--text-muted);
+            background-color: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            margin: 0 0.25rem;
+        }
+        .nav-pills .nav-link.active {
+            background-color: var(--accent) !important;
+            color: var(--text-on-accent) !important;
+            border-color: var(--accent) !important;
+        }
+        .nav-tabs {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .nav-tabs .nav-link {
+            color: var(--text-muted);
+        }
+        .nav-tabs .nav-link.active {
+            color: var(--accent);
+            border-color: var(--border-color) var(--border-color) var(--bg-page);
+            background-color: var(--bg-page);
+        }
+
+        /* Badges */
+        .badge-easy {
+            background-color: var(--status-success) !important;
+            color: #FFFFFF !important;
+        }
+        .badge-moderate {
+            background-color: var(--status-warning) !important;
+            color: #FFFFFF !important;
+        }
+        .badge-hard {
+            background-color: var(--status-error) !important;
+            color: #FFFFFF !important;
+        }
+        .badge.bg-success {
+            background-color: var(--status-success) !important;
+            color: #FFFFFF !important;
+        }
+        .badge.bg-warning {
+            background-color: var(--status-warning) !important;
+            color: #FFFFFF !important;
+        }
+        .badge.bg-danger {
+            background-color: var(--status-error) !important;
+            color: #FFFFFF !important;
+        }
+        .badge.bg-secondary {
+            background-color: #EBE9E2 !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--border-color);
+        }
+        .badge.bg-info {
+            background-color: var(--accent-tint) !important;
+            color: var(--accent) !important;
+            border: 1px solid var(--accent);
+        }
+
+        /* Alerts */
+        .alert-success {
+            background-color: #EDF7ED;
+            border-color: #C8E6C9;
+            color: var(--status-success);
+        }
+        .alert-danger {
+            background-color: #FDECEA;
+            border-color: #FFCDD2;
+            color: var(--status-error);
+        }
+        .alert-warning {
+            background-color: #FFF4E5;
+            border-color: #FFE0B2;
+            color: var(--status-warning);
+        }
+        .alert-info {
+            background-color: var(--accent-tint);
+            border-color: #B2DFDB;
+            color: var(--accent);
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+            color: var(--text-on-accent);
+            padding: 2.75rem 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+        .hero-banner p {
+            color: var(--accent-tint);
+        }
+
+        /* Tables */
+        .table {
+            border-color: var(--border-color);
+            color: var(--text-main);
+        }
+        .table > :not(caption) > * > * {
+            background-color: transparent;
+            border-bottom-color: var(--border-color);
+        }
+        .table-light {
+            background-color: var(--accent-tint) !important;
+            color: var(--text-main) !important;
+            border-color: var(--border-color) !important;
+        }
+        .table-dark th {
+            background-color: #1F2421 !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Dropdowns */
+        .dropdown-menu {
+            background-color: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
         }
     </style>
 </head>

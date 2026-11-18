@@ -2,11 +2,11 @@
   <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 class="fw-bold mb-1"><i class="bi bi-person-badge text-warning me-2"></i>Staff Operations Dashboard</h2>
+        <h2 class="fw-bold mb-1"><i class="bi bi-person-badge me-2" style="color: var(--accent);"></i>Staff Operations Dashboard</h2>
         <p class="text-muted mb-0">Manage your assigned trekking expeditions, participant lists, and slot capacities.</p>
       </div>
       <button class="btn btn-outline-primary btn-sm" @click="fetchStaffData">
-        <i class="bi bi-arrow-clockwise"></i> Refresh
+        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
       </button>
     </div>
 
@@ -19,10 +19,10 @@
     <!-- Metrics Cards -->
     <div class="row g-3 mb-4">
       <div class="col-md-6">
-        <div class="card border-0 shadow-sm bg-white p-3">
+        <div class="card p-3 shadow-sm">
           <div class="d-flex align-items-center">
-            <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-3 me-3">
-              <i class="bi bi-map fs-3"></i>
+            <div class="p-3 rounded-3 me-3 fs-3" style="background-color: var(--accent-tint); color: var(--accent);">
+              <i class="bi bi-map"></i>
             </div>
             <div>
               <h6 class="text-muted mb-0">Assigned Treks</h6>
@@ -32,10 +32,10 @@
         </div>
       </div>
       <div class="col-md-6">
-        <div class="card border-0 shadow-sm bg-white p-3">
+        <div class="card p-3 shadow-sm">
           <div class="d-flex align-items-center">
-            <div class="p-3 bg-success bg-opacity-10 text-success rounded-3 me-3">
-              <i class="bi bi-people fs-3"></i>
+            <div class="p-3 rounded-3 me-3 fs-3" style="background-color: var(--accent-tint); color: var(--accent);">
+              <i class="bi bi-people"></i>
             </div>
             <div>
               <h6 class="text-muted mb-0">Total Registered Trekkers</h6>
@@ -115,7 +115,7 @@
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" v-if="activeTrekParticipants">
       <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-          <div class="modal-header bg-dark text-white">
+          <div class="modal-header text-white" style="background-color: var(--accent);">
             <h5 class="modal-title">
               <i class="bi bi-people-fill me-2"></i>Participants: {{ activeTrekParticipants.trek_name || activeTrekParticipants.name }}
             </h5>
@@ -189,7 +189,7 @@
             </div>
           </div>
           <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" @click="activeTrekParticipants = null">Close</button>
+            <button type="button" class="btn btn-outline-secondary" @click="activeTrekParticipants = null">Close</button>
           </div>
         </div>
       </div>
@@ -199,7 +199,7 @@
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" v-if="slotTrek">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-          <div class="modal-header bg-primary text-white">
+          <div class="modal-header text-white" style="background-color: var(--accent);">
             <h5 class="modal-title">Manage Slots: {{ slotTrek.name }}</h5>
             <button type="button" class="btn-close btn-close-white" @click="slotTrek = null"></button>
           </div>
@@ -209,9 +209,9 @@
               <input type="number" v-model.number="newSlots" class="form-control" min="0" :max="slotTrek.total_slots" />
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" @click="slotTrek = null">Cancel</button>
-            <button type="button" class="btn btn-success" @click="saveSlots">Save Changes</button>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-outline-secondary" @click="slotTrek = null">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="saveSlots">Save Changes</button>
           </div>
         </div>
       </div>

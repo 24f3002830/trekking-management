@@ -40,18 +40,18 @@
       <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-3">
           <form class="row g-2 align-items-center" @submit.prevent="fetchTreks">
-            <div class="col-md-4">
+            <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
                 <input
                   type="text"
                   v-model="filters.search"
                   class="form-control"
-                  placeholder="Search by trek name or location..."
+                  placeholder="Search name or location..."
                 />
               </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <select v-model="filters.difficulty" class="form-select">
                 <option value="">All Difficulties</option>
                 <option value="Easy">Easy</option>
@@ -65,6 +65,14 @@
                 v-model="filters.location"
                 class="form-control"
                 placeholder="Filter by location (e.g. Uttarakhand)"
+              />
+            </div>
+            <div class="col-md-2">
+              <input
+                type="date"
+                v-model="filters.date"
+                class="form-control"
+                title="Filter by start date"
               />
             </div>
             <div class="col-md-2 d-flex gap-1">
@@ -102,15 +110,15 @@
             </div>
 
             <div class="card-body">
-              <h5 class="card-title fw-bold text-dark mb-1">{{ trek.name }}</h5>
+              <h5 class="card-title fw-bold mb-1">{{ trek.name }}</h5>
               <div class="d-flex align-items-center mb-2">
-                <span class="text-warning me-1"><i class="bi bi-star-fill"></i></span>
+                <span class="me-1" style="color: var(--status-warning);"><i class="bi bi-star-fill"></i></span>
                 <span class="fw-bold small me-1">{{ trek.average_rating || 5.0 }}</span>
                 <span class="text-muted small">({{ trek.review_count || 0 }} reviews)</span>
-                <button class="btn btn-link btn-sm text-decoration-none p-0 ms-2" @click="openReviewsModal(trek)">View Reviews</button>
+                <button class="btn btn-link btn-sm text-decoration-none p-0 ms-2" style="color: var(--accent);" @click="openReviewsModal(trek)">View Reviews</button>
               </div>
               <p class="text-muted small mb-2">
-                <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ trek.location }}
+                <i class="bi bi-geo-alt-fill me-1" style="color: var(--status-warning);"></i>{{ trek.location }}
               </p>
               <p class="card-text text-secondary small">{{ trek.description }}</p>
 
@@ -120,8 +128,9 @@
                   <span><i class="bi bi-calendar-event me-1"></i>{{ trek.start_date }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mt-2">
-                  <span class="fw-bold text-success fs-5">₹{{ trek.price.toLocaleString() }}</span>
-                  <span class="badge" :class="trek.available_slots > 0 ? 'bg-info text-dark' : 'bg-danger'">
+                  <span class="fw-bold fs-5" style="color: var(--accent);">₹{{ trek.price.toLocaleString() }}</span>
+                  <span class="badge" :class="trek.available_slots > 0 ? 'bg-info' : 'bg-danger'">
+                    <i :class="trek.available_slots > 0 ? 'bi bi-check2 me-1' : 'bi bi-x me-1'"></i>
                     {{ trek.available_slots }} / {{ trek.total_slots }} slots
                   </span>
                 </div>
@@ -223,7 +232,7 @@
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" v-if="selectedTrek">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-          <div class="modal-header bg-primary text-white">
+          <div class="modal-header text-white" style="background-color: var(--accent);">
             <h5 class="modal-title"><i class="bi bi-ticket-perforated me-2"></i>Book Trek</h5>
             <button type="button" class="btn-close btn-close-white" @click="selectedTrek = null"></button>
           </div>
@@ -258,10 +267,10 @@
                 <option value="Simulated Credit / Debit Card">💳 Credit / Debit Card</option>
                 <option value="Simulated Net Banking">🏦 Net Banking</option>
               </select>
-              <div class="form-text text-success"><i class="bi bi-shield-check me-1"></i>Safe test payment simulation</div>
+              <div class="form-text" style="color: var(--accent);"><i class="bi bi-shield-check me-1"></i>Safe test payment simulation</div>
             </div>
 
-            <div class="card bg-light border-0 p-3 mb-3">
+            <div class="card p-3 mb-3" style="background-color: var(--bg-page) !important;">
               <div class="d-flex justify-content-between mb-1">
                 <span>Price per slot:</span>
                 <span>₹{{ selectedTrek.price.toLocaleString() }}</span>
@@ -271,15 +280,15 @@
                 <span>{{ bookingSlots }}</span>
               </div>
               <hr class="my-2">
-              <div class="d-flex justify-content-between fw-bold fs-5 text-success">
+              <div class="d-flex justify-content-between fw-bold fs-5" style="color: var(--accent);">
                 <span>Total Amount:</span>
                 <span>₹{{ (bookingSlots * selectedTrek.price).toLocaleString() }}</span>
               </div>
             </div>
           </div>
           <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" @click="selectedTrek = null">Close</button>
-            <button type="button" class="btn btn-success" :disabled="bookingInProgress" @click="confirmBooking">
+            <button type="button" class="btn btn-outline-secondary" @click="selectedTrek = null">Close</button>
+            <button type="button" class="btn btn-primary" :disabled="bookingInProgress" @click="confirmBooking">
               <span v-if="bookingInProgress" class="spinner-border spinner-border-sm me-1"></span>
               Confirm & Book
             </button>
@@ -292,13 +301,13 @@
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" v-if="reviewTrek">
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow">
-          <div class="modal-header bg-warning text-dark">
-            <h5 class="modal-title"><i class="bi bi-star-fill me-2"></i>Reviews: {{ reviewTrek.name }}</h5>
+          <div class="modal-header border-bottom" style="background-color: var(--accent-tint); color: var(--accent);">
+            <h5 class="modal-title"><i class="bi bi-star-fill me-2" style="color: var(--status-warning);"></i>Reviews: {{ reviewTrek.name }}</h5>
             <button type="button" class="btn-close" @click="reviewTrek = null"></button>
           </div>
           <div class="modal-body p-4">
             <!-- Review Submission Form (if logged in) -->
-            <div v-if="auth.isAuthenticated()" class="card bg-light border-0 p-3 mb-4">
+            <div v-if="auth.isAuthenticated()" class="card p-3 mb-4" style="background-color: var(--bg-page) !important;">
               <h6 class="fw-bold mb-2">Leave a Review</h6>
               <div class="mb-2">
                 <label class="form-label small mb-1">Rating</label>
@@ -314,7 +323,7 @@
                 <label class="form-label small mb-1">Feedback Comment</label>
                 <textarea v-model="newReview.comment" class="form-control form-control-sm" rows="2" placeholder="Share your experience on this trail..."></textarea>
               </div>
-              <button class="btn btn-warning btn-sm fw-bold align-self-end" :disabled="submittingReview" @click="submitReview">
+              <button class="btn btn-primary btn-sm fw-bold align-self-end" :disabled="submittingReview" @click="submitReview">
                 <span v-if="submittingReview" class="spinner-border spinner-border-sm me-1"></span>
                 Post Review
               </button>
@@ -326,16 +335,16 @@
             <!-- Existing Reviews List -->
             <h6 class="fw-bold mb-3">Trekker Feedback ({{ trekReviews.length }})</h6>
             <div v-if="loadingReviews" class="text-center py-3">
-              <div class="spinner-border spinner-border-sm text-warning"></div>
+              <div class="spinner-border spinner-border-sm text-primary"></div>
             </div>
             <div v-else-if="trekReviews.length === 0" class="text-center py-3 text-muted small">
               No reviews yet. Be the first to share your experience!
             </div>
             <div v-else class="list-group list-group-flush">
-              <div v-for="r in trekReviews" :key="r.id" class="list-group-item px-0 py-2">
+              <div v-for="r in trekReviews" :key="r.id" class="list-group-item px-0 py-2 border-bottom" style="background: transparent;">
                 <div class="d-flex justify-content-between align-items-center">
                   <span class="fw-semibold small">{{ r.user_name }}</span>
-                  <span class="text-warning small">
+                  <span class="small" style="color: var(--status-warning);">
                     <span v-for="star in r.rating" :key="star">★</span>
                   </span>
                 </div>
@@ -345,7 +354,7 @@
             </div>
           </div>
           <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" @click="reviewTrek = null">Close</button>
+            <button type="button" class="btn btn-outline-secondary" @click="reviewTrek = null">Close</button>
           </div>
         </div>
       </div>
@@ -355,26 +364,26 @@
     <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);" v-if="itineraryTrek">
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow">
-          <div class="modal-header bg-success text-white">
+          <div class="modal-header text-white" style="background-color: var(--accent);">
             <h5 class="modal-title"><i class="bi bi-compass-fill me-2"></i>{{ itineraryTrek.name }}</h5>
             <button type="button" class="btn-close btn-close-white" @click="itineraryTrek = null"></button>
           </div>
           <div class="modal-body p-4">
             <div class="mb-4">
-              <h6 class="fw-bold text-success mb-2">
+              <h6 class="fw-bold mb-2" style="color: var(--accent);">
                 <i class="bi bi-signpost-split me-1"></i>Day-Wise Itinerary ({{ itineraryTrek.duration_days }} Days)
               </h6>
-              <div class="bg-light p-3 rounded small text-secondary" style="white-space: pre-line;">{{ itineraryTrek.itinerary || 'Day 1: Base camp orientation & fitness walk\nDay 2: Ascent to high ridge campsite\nDay 3: Scenic pass crossing & alpine meadows\nDay 4: Summit push (breathtaking panoramic vistas)\nDay 5: Controlled return trek to base' }}</div>
+              <div class="p-3 rounded small text-secondary" style="background-color: var(--bg-page); border: 1px solid var(--border-color); white-space: pre-line;">{{ itineraryTrek.itinerary || 'Day 1: Base camp orientation & fitness walk\nDay 2: Ascent to high ridge campsite\nDay 3: Scenic pass crossing & alpine meadows\nDay 4: Summit push (breathtaking panoramic vistas)\nDay 5: Controlled return trek to base' }}</div>
             </div>
             <div>
-              <h6 class="fw-bold text-danger mb-2">
+              <h6 class="fw-bold mb-2" style="color: var(--status-warning);">
                 <i class="bi bi-backpack4 me-1"></i>Mandatory Packing & Gear Checklist
               </h6>
-              <div class="bg-light p-3 rounded small text-secondary" style="white-space: pre-line;">{{ itineraryTrek.gear_checklist || '• Sturdy high-ankle trekking shoes with good grip\n• 50L Rucksack with waterproof rain cover\n• 2 pairs of thermal fleece inners & windproof jacket\n• UV protection sunglasses & quick-dry trekking pants\n• 2x 1L reusable water bottles & electrolyte sachets\n• Headlamp with extra batteries\n• Personal blister kit & prescribed Diamox (if recommended)' }}</div>
+              <div class="p-3 rounded small text-secondary" style="background-color: var(--bg-page); border: 1px solid var(--border-color); white-space: pre-line;">{{ itineraryTrek.gear_checklist || '• Sturdy high-ankle trekking shoes with good grip\n• 50L Rucksack with waterproof rain cover\n• 2 pairs of thermal fleece inners & windproof jacket\n• UV protection sunglasses & quick-dry trekking pants\n• 2x 1L reusable water bottles & electrolyte sachets\n• Headlamp with extra batteries\n• Personal blister kit & prescribed Diamox (if recommended)' }}</div>
             </div>
           </div>
           <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" @click="itineraryTrek = null">Close</button>
+            <button type="button" class="btn btn-outline-secondary" @click="itineraryTrek = null">Close</button>
             <button
               type="button"
               class="btn btn-primary"
@@ -417,7 +426,8 @@ export default {
       filters: {
         search: '',
         difficulty: '',
-        location: ''
+        location: '',
+        date: ''
       }
     };
   },
@@ -434,17 +444,30 @@ export default {
       setTimeout(() => { this.alertMessage = ''; }, 4000);
     },
     getDifficultyBadge(difficulty) {
-      if (difficulty === 'Easy') return 'badge-easy';
-      if (difficulty === 'Moderate') return 'badge-moderate';
+      if (difficulty === 'Easy') {
+        return 'badge-easy';
+      }
+      if (difficulty === 'Moderate') {
+        return 'badge-moderate';
+      }
       return 'badge-hard';
     },
     getBookingStatusBadge(status) {
-      if (status === 'Booked') return 'bg-success';
-      if (status === 'Cancelled') return 'bg-danger';
+      if (status === 'Booked') {
+        return 'bg-success';
+      }
+      if (status === 'Cancelled') {
+        return 'bg-danger';
+      }
       return 'bg-info text-dark';
     },
     resetFilters() {
-      this.filters = { search: '', difficulty: '', location: '' };
+      this.filters = {
+        search: '',
+        difficulty: '',
+        location: '',
+        date: ''
+      };
       this.fetchTreks();
     },
     async fetchTreks() {
@@ -454,6 +477,7 @@ export default {
         if (this.filters.search) queryParams.append('search', this.filters.search);
         if (this.filters.difficulty) queryParams.append('difficulty', this.filters.difficulty);
         if (this.filters.location) queryParams.append('location', this.filters.location);
+        if (this.filters.date) queryParams.append('date', this.filters.date);
 
         const res = await fetch(`/api/treks?${queryParams.toString()}`);
         const data = await res.json();
@@ -492,7 +516,9 @@ export default {
       this.bookingSlots = 1;
     },
     async confirmBooking() {
-      if (!this.selectedTrek) return;
+      if (!this.selectedTrek) {
+        return;
+      }
       this.bookingInProgress = true;
 
       try {
@@ -525,7 +551,10 @@ export default {
       }
     },
     async cancelBooking(bookingId) {
-      if (!confirm('Are you sure you want to cancel this booking? Slots will be released.')) return;
+      const confirmed = confirm('Are you sure you want to cancel this booking? Slots will be released.');
+      if (!confirmed) {
+        return;
+      }
 
       try {
         const res = await fetch(`/api/bookings/${bookingId}/cancel`, {
@@ -600,7 +629,9 @@ export default {
       }
     },
     async submitReview() {
-      if (!this.reviewTrek || !this.auth.isAuthenticated()) return;
+      if (!this.reviewTrek || !this.auth.isAuthenticated()) {
+        return;
+      }
       this.submittingReview = true;
       try {
         const res = await fetch(`/api/treks/${this.reviewTrek.id}/reviews`, {

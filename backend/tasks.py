@@ -1,14 +1,14 @@
 """
 Celery Task Definitions for Trekking Management Application (TMA).
-Implements:
-1. Scheduled Job: Daily reminders sent to users for upcoming treks.
-2. Scheduled Job: Monthly HTML activity report generated for Admin.
-3. User-Triggered Async Job: Export booking & trekking history as CSV.
+Implements background jobs:
+1. Scheduled Daily Reminders: Reminds users about upcoming treks starting in 3 days.
+2. Scheduled Monthly Report: Generates HTML activity report for the Admin.
+3. User-Triggered CSV Export: Exports user's complete booking history.
 """
 
 import os
 import csv
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from backend.celery_app import celery
 from backend.models import db, User, Trek, Booking
 
@@ -22,23 +22,18 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 
 
 def log_notification(message):
-    """Log an outgoing notification, reminder, or system alert."""
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+    #Log an outgoing notification or reminder to console and file.
+    timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
     entry = f"[{timestamp}] {message}\n"
-    with open(NOTIFICATIONS_LOG, 'a', encoding='utf-8') as f:
-        f.write(entry)
-    print(f"📢 {message}")
+    with open(NOTIFICATIONS_LOG, 'a', encoding='utf-8') as file:
+        file.write(entry)
+    print(f"{message}")
 
 
 @celery.task(name='backend.tasks.export_booking_history_csv')
 def export_booking_history_csv(user_id):
-    """
-    User Triggered Async Job:
-    Exports complete trekking and booking history of a user to CSV format.
-    Fields included per specification:
-      - User ID, Trek Name, Location, Booking Status, Dates (Booking, Start, End),
-        Slots Booked, Total Price, Payment Status.
-    """
+    
+    #Exports a user's complete trekking and booking history as a CSV file.
     from backend.app import app
 
     with app.app_context():
@@ -48,15 +43,16 @@ def export_booking_history_csv(user_id):
 
         bookings = Booking.query.filter_by(user_id=user_id).order_by(Booking.booking_date.desc()).all()
 
-        timestamp_str = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        timestamp_str = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
+        file_path = os.path.join(EXPORTS_DIR, f"booking_history_user_{user_id}_{timestamp_str}.csv")
         filename = f"booking_history_user_{user_id}_{timestamp_str}.csv"
-        file_path = os.path.join(EXPORTS_DIR, filename)
 
-        # Write CSV
+        # Write data to CSV file
         with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            # Write Header
-            writer.writerow([
+
+            # Write header row
+            header = [
                 'Booking ID',
                 'User ID',
                 'User Name',
@@ -70,29 +66,51 @@ def export_booking_history_csv(user_id):
                 'Slots Booked',
                 'Total Price (INR)',
                 'Payment Status'
-            ])
+            ]
+            writer.writerow(header)
 
-            # Write Records
-            for b in bookings:
-                trek = b.trek
-                writer.writerow([
-                    b.id,
+            # Write booking records
+            for booking in bookings:
+                trek = booking.trek
+
+                trek_name = 'N/A'
+                trek_location = 'N/A'
+                trek_difficulty = 'N/A'
+                trek_start_str = 'N/A'
+                trek_end_str = 'N/A'
+
+                if trek:
+                    trek_name = trek.name
+                    trek_location = trek.location
+                    trek_difficulty = trek.difficulty
+                    if trek.start_date:
+                        trek_start_str = trek.start_date.strftime('%Y-%m-%d')
+                    if trek.end_date:
+                        trek_end_str = trek.end_date.strftime('%Y-%m-%d')
+
+                booking_date_str = 'N/A'
+                if booking.booking_date:
+                    booking_date_str = booking.booking_date.strftime('%Y-%m-%d %H:%M:%S')
+
+                row = [
+                    booking.id,
                     user.id,
                     user.full_name,
-                    trek.name if trek else 'N/A',
-                    trek.location if trek else 'N/A',
-                    trek.difficulty if trek else 'N/A',
-                    b.status,
-                    b.booking_date.strftime('%Y-%m-%d %H:%M:%S') if b.booking_date else 'N/A',
-                    trek.start_date.strftime('%Y-%m-%d') if trek and trek.start_date else 'N/A',
-                    trek.end_date.strftime('%Y-%m-%d') if trek and trek.end_date else 'N/A',
-                    b.slots_booked,
-                    b.total_price,
-                    b.payment_status
-                ])
+                    trek_name,
+                    trek_location,
+                    trek_difficulty,
+                    booking.status,
+                    booking_date_str,
+                    trek_start_str,
+                    trek_end_str,
+                    booking.slots_booked,
+                    booking.total_price,
+                    booking.payment_status
+                ]
+                writer.writerow(row)
 
         log_notification(
-            f"Export Complete: Booking history for User '{user.username}' (ID: {user_id}) exported to {filename}. ({len(bookings)} records)"
+            f"Export Complete: Booking history for User '{user.username}' (ID: {user_id}) exported to {filename}."
         )
 
         return {
@@ -106,18 +124,16 @@ def export_booking_history_csv(user_id):
 
 @celery.task(name='backend.tasks.send_daily_reminders')
 def send_daily_reminders():
-    """
-    Scheduled Job (Daily):
-    Finds all bookings for treks starting in the next 3 days and sends
-    preparation reminders and guidelines to the registered users via email/webhook simulation.
-    """
+    
+    #Sends preparation reminders to users whose treks depart in the next 3 days.
+    
     from backend.app import app
 
     with app.app_context():
         today = date.today()
         upcoming_window = today + timedelta(days=3)
 
-        # Treks starting within next 3 days
+        # Query treks departing in the 3-day window
         upcoming_treks = Trek.query.filter(
             Trek.start_date >= today,
             Trek.start_date <= upcoming_window,
@@ -128,17 +144,17 @@ def send_daily_reminders():
         details = []
 
         for trek in upcoming_treks:
-            # Active bookings for this trek
             active_bookings = Booking.query.filter_by(trek_id=trek.id, status='Booked').all()
 
-            for b in active_bookings:
-                recipient = b.user
+            for booking in active_bookings:
+                recipient = booking.user
                 days_left = (trek.start_date - today).days
 
+                start_date_str = trek.start_date.strftime('%Y-%m-%d')
                 reminder_msg = (
                     f"Reminder to {recipient.full_name} ({recipient.email}): "
-                    f"Your trek '{trek.name}' at {trek.location} starts in {days_left} day(s) on {trek.start_date}. "
-                    f"Slots booked: {b.slots_booked}. Please bring appropriate trekking gear, sturdy shoes, and warm layers!"
+                    f"Your trek '{trek.name}' at {trek.location} starts in {days_left} day(s) on {start_date_str}. "
+                    f"Slots booked: {booking.slots_booked}. Please bring appropriate trekking gear!"
                 )
 
                 log_notification(reminder_msg)
@@ -146,11 +162,11 @@ def send_daily_reminders():
                     'user_id': recipient.id,
                     'user_email': recipient.email,
                     'trek_name': trek.name,
-                    'start_date': trek.start_date.strftime('%Y-%m-%d')
+                    'start_date': start_date_str
                 })
                 reminders_sent += 1
 
-        summary = f"Daily Reminders Job executed: {reminders_sent} reminder(s) dispatched for upcoming treks."
+        summary = f"Daily Reminders Job executed: {reminders_sent} reminder(s) dispatched."
         log_notification(summary)
 
         return {
@@ -162,50 +178,58 @@ def send_daily_reminders():
 
 @celery.task(name='backend.tasks.generate_monthly_activity_report')
 def generate_monthly_activity_report():
-    """
-    Scheduled Job (Monthly):
-    Generates a monthly activity and trekking statistics report for the Admin.
-    Formats the report in clean HTML and saves it for Admin download and email simulation.
-    """
+    
+    #Generates a monthly activity report with metrics and HTML summary for Admin.
+    
     from backend.app import app
 
     with app.app_context():
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         month_name = now.strftime('%B %Y')
         month_tag = now.strftime('%Y_%m')
 
         total_treks = Trek.query.count()
         all_bookings = Booking.query.filter(Booking.status != 'Cancelled').all()
-        total_participants = sum(b.slots_booked for b in all_bookings)
-        total_revenue = sum(b.total_price for b in all_bookings)
 
-        # Popular Treks Breakdown
+        total_participants = 0
+        total_revenue = 0.0
+        for b in all_bookings:
+            total_participants += b.slots_booked
+            total_revenue += b.total_price
+
+        # Sort treks by slots booked
         treks = Trek.query.all()
         trek_stats = []
         for t in treks:
             valid_bookings = [b for b in t.bookings if b.status != 'Cancelled']
-            slots_booked = sum(b.slots_booked for b in valid_bookings)
+            booked_count = sum(b.slots_booked for b in valid_bookings)
             trek_stats.append({
                 'name': t.name,
                 'location': t.location,
                 'difficulty': t.difficulty,
                 'total_slots': t.total_slots,
-                'slots_booked': slots_booked,
+                'slots_booked': booked_count,
                 'status': t.status
             })
 
         trek_stats.sort(key=lambda x: x['slots_booked'], reverse=True)
 
-        # Generate HTML report
-        rows_html = "".join([
-            f"""<tr>
+        # Generate HTML table rows cleanly
+        table_rows = []
+        for t in trek_stats:
+            row_html = f"""<tr>
                 <td style="padding: 10px; border-bottom: 1px solid #ddd;">{t['name']}</td>
                 <td style="padding: 10px; border-bottom: 1px solid #ddd;">{t['location']}</td>
                 <td style="padding: 10px; border-bottom: 1px solid #ddd;">{t['difficulty']}</td>
                 <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">{t['slots_booked']} / {t['total_slots']}</td>
                 <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;"><strong>{t['status']}</strong></td>
-            </tr>""" for t in trek_stats
-        ])
+            </tr>"""
+            table_rows.append(row_html)
+
+        if table_rows:
+            rows_html = "".join(table_rows)
+        else:
+            rows_html = '<tr><td colspan="5" style="text-align:center; padding:15px;">No treks conducted this period.</td></tr>'
 
         html_content = f"""<!DOCTYPE html>
 <html>
@@ -215,13 +239,13 @@ def generate_monthly_activity_report():
     <style>
         body {{ font-family: Arial, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 20px; }}
         .container {{ max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-        h1 {{ color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }}
+        h1 {{ color: #2c3e50; border-bottom: 2px solid #1F6F5C; padding-bottom: 10px; }}
         .metric-cards {{ display: flex; gap: 15px; margin: 25px 0; }}
         .card {{ flex: 1; background: #ecf0f1; padding: 15px; border-radius: 6px; text-align: center; }}
         .card h3 {{ margin: 0; font-size: 14px; color: #7f8c8d; text-transform: uppercase; }}
-        .card p {{ margin: 10px 0 0; font-size: 24px; font-weight: bold; color: #2c3e50; }}
+        .card p {{ margin: 10px 0 0; font-size: 24px; font-weight: bold; color: #1F6F5C; }}
         table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-        th {{ background-color: #3498db; color: white; padding: 12px; text-align: left; }}
+        th {{ background-color: #1F6F5C; color: white; padding: 12px; text-align: left; }}
         .footer {{ margin-top: 30px; font-size: 12px; color: #95a5a6; text-align: center; }}
     </style>
 </head>
@@ -258,7 +282,7 @@ def generate_monthly_activity_report():
                 </tr>
             </thead>
             <tbody>
-                {rows_html if rows_html else '<tr><td colspan="5" style="text-align:center; padding:15px;">No treks conducted this period.</td></tr>'}
+                {rows_html}
             </tbody>
         </table>
 
@@ -276,7 +300,7 @@ def generate_monthly_activity_report():
             f.write(html_content)
 
         log_notification(
-            f"Monthly Report Generated: Sent to Admin (admin@trekking.com). Saved at {filename}."
+            f"Monthly Report Generated: Saved at {filename}."
         )
 
         return {

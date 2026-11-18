@@ -4,7 +4,7 @@
       <div class="card shadow-sm border-0 mt-4">
         <div class="card-body p-4">
           <div class="text-center mb-4">
-            <i class="bi bi-person-circle display-4 text-primary"></i>
+            <i class="bi bi-person-circle display-4" style="color: var(--accent);"></i>
             <h3 class="fw-bold mt-2">Welcome Back</h3>
             <p class="text-muted">Log in to your Trekking Account</p>
           </div>
@@ -67,7 +67,7 @@
           <div class="text-center mt-3">
             <p class="small text-muted mb-0">
               Don't have an account?
-              <router-link to="/register" class="fw-bold text-decoration-none text-success">Register as Trekker</router-link>
+              <router-link to="/register" class="fw-bold text-decoration-none" style="color: var(--accent);">Register as Trekker</router-link>
             </p>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default {
           } else if (data.user.role === 'staff') {
             this.$router.push('/staff');
           } else {
-            this.$router.push('/');
+            this.$router.push('/treks');
           }
         } else {
           this.errorMessage = data.message || 'Login failed. Please check credentials.';

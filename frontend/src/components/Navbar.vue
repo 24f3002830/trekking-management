@@ -1,8 +1,8 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+  <nav class="navbar navbar-expand-lg navbar-custom shadow-sm sticky-top">
     <div class="container">
-      <router-link class="navbar-brand fw-bold d-flex align-items-center" to="/">
-        <i class="bi bi-compass me-2 text-success fs-4"></i>
+      <router-link class="navbar-brand fw-bold d-flex align-items-center" to="/treks">
+        <i class="bi bi-compass me-2 text-accent fs-4"></i>
         <span>Trekking TMA</span>
       </router-link>
 
@@ -13,13 +13,13 @@
       <div class="collapse navbar-collapse" id="navbarContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <router-link class="nav-link" to="/"><i class="bi bi-map me-1"></i>Explore Treks</router-link>
+            <router-link class="nav-link" to="/treks"><i class="bi bi-map me-1"></i>Explore Treks</router-link>
           </li>
           <li class="nav-item" v-if="auth.user && auth.user.role === 'staff'">
-            <router-link class="nav-link text-warning" to="/staff"><i class="bi bi-person-badge me-1"></i>Staff Dashboard</router-link>
+            <router-link class="nav-link" to="/staff"><i class="bi bi-person-badge me-1"></i>Staff Dashboard</router-link>
           </li>
           <li class="nav-item" v-if="auth.user && auth.user.role === 'admin'">
-            <router-link class="nav-link text-info" to="/admin"><i class="bi bi-shield-lock me-1"></i>Admin Console</router-link>
+            <router-link class="nav-link" to="/admin"><i class="bi bi-shield-lock me-1"></i>Admin Console</router-link>
           </li>
         </ul>
 
@@ -29,7 +29,7 @@
             <!-- Notification Bell with Dropdown -->
             <div class="dropdown me-3 position-relative">
               <button
-                class="btn btn-outline-light btn-sm position-relative"
+                class="btn btn-outline-secondary btn-sm position-relative"
                 type="button"
                 id="notifDropdown"
                 data-bs-toggle="dropdown"
@@ -47,8 +47,8 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" aria-labelledby="notifDropdown" style="width: 320px; max-height: 400px; overflow-y: auto;">
                 <li class="d-flex justify-content-between align-items-center px-2 py-1 border-bottom">
-                  <span class="fw-bold small text-muted">Notifications</span>
-                  <button v-if="unreadCount > 0" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.75rem;" @click="markAllRead">
+                  <span class="fw-bold small text-muted"><i class="bi bi-bell-fill me-1"></i>Notifications</span>
+                  <button v-if="unreadCount > 0" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.75rem; color: var(--accent);" @click="markAllRead">
                     Mark all read
                   </button>
                 </li>
@@ -73,21 +73,21 @@
             <span class="badge bg-secondary me-2 p-2 d-none d-sm-inline">
               <i class="bi bi-person-circle me-1"></i>{{ auth.user.full_name }} ({{ auth.user.role }})
             </span>
-            <router-link class="btn btn-outline-light btn-sm me-2" to="/profile">
-              <i class="bi bi-gear"></i> Profile
+            <router-link class="btn btn-outline-secondary btn-sm me-2" to="/profile">
+              <i class="bi bi-gear me-1"></i>Profile
             </router-link>
-            <button class="btn btn-danger btn-sm" @click="handleLogout">
-              <i class="bi bi-box-arrow-right"></i> Logout
+            <button class="btn btn-outline-danger btn-sm" @click="handleLogout">
+              <i class="bi bi-box-arrow-right me-1"></i>Logout
             </button>
           </div>
 
           <!-- When Logged Out -->
           <div v-else>
-            <router-link class="btn btn-outline-light btn-sm me-2" to="/login">
-              <i class="bi bi-box-arrow-in-right"></i> Login
+            <router-link class="btn btn-outline-secondary btn-sm me-2" to="/login">
+              <i class="bi bi-box-arrow-in-right me-1"></i>Login
             </router-link>
-            <router-link class="btn btn-success btn-sm" to="/register">
-              <i class="bi bi-person-plus"></i> Register
+            <router-link class="btn btn-primary btn-sm" to="/register">
+              <i class="bi bi-person-plus me-1"></i>Register
             </router-link>
           </div>
         </div>
@@ -95,6 +95,28 @@
     </div>
   </nav>
 </template>
+
+<style scoped>
+.navbar-custom {
+  background-color: var(--surface-card, #FFFFFF);
+  border-bottom: 1px solid var(--border-color, #E5E3DC);
+}
+.navbar-custom .navbar-brand {
+  color: var(--text-main, #1F2421);
+}
+.text-accent {
+  color: var(--accent, #1F6F5C) !important;
+}
+.navbar-custom .nav-link {
+  color: var(--text-muted, #5F665F);
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+.navbar-custom .nav-link:hover,
+.navbar-custom .nav-link.router-link-active {
+  color: var(--accent, #1F6F5C) !important;
+}
+</style>
 
 <script>
 export default {

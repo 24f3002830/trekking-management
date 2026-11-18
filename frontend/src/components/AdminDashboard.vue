@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 class="fw-bold mb-1"><i class="bi bi-shield-lock text-info me-2"></i>Admin Control Console</h2>
+        <h2 class="fw-bold mb-1"><i class="bi bi-shield-lock me-2" style="color: var(--accent);"></i>Admin Control Console</h2>
         <p class="text-muted mb-0">System-wide management for treks, staff, users, bookings, and reports.</p>
       </div>
       <button class="btn btn-outline-secondary btn-sm" @click="loadAll">
@@ -19,9 +19,9 @@
     <!-- Dashboard Metric Cards -->
     <div class="row g-3 mb-4">
       <div class="col-6 col-md-3" v-for="card in metricCards" :key="card.label">
-        <div class="card border-0 shadow-sm p-3">
+        <div class="card shadow-sm p-3">
           <div class="d-flex align-items-center">
-            <div :class="['p-3 rounded-3 me-3 fs-3', card.iconBg]">
+            <div class="p-3 rounded-3 me-3 fs-3" style="background-color: var(--accent-tint); color: var(--accent);">
               <i :class="['bi', card.icon]"></i>
             </div>
             <div>
@@ -50,14 +50,14 @@
     <div v-if="currentTab === 'treks'">
       <div class="d-flex justify-content-between mb-3">
         <h5 class="fw-bold mb-0">All Treks</h5>
-        <button class="btn btn-success btn-sm" @click="openTrekModal()">
+        <button class="btn btn-primary btn-sm" @click="openTrekModal()">
           <i class="bi bi-plus-lg me-1"></i>Add New Trek
         </button>
       </div>
 
       <div class="table-responsive">
-        <table class="table table-hover align-middle border-0 shadow-sm">
-          <thead class="table-dark">
+        <table class="table table-hover align-middle shadow-sm">
+          <thead class="table-light">
             <tr>
               <th>#</th><th>Name</th><th>Location</th><th>Difficulty</th>
               <th>Slots</th><th>Price</th><th>Assigned Staff</th><th>Status</th><th>Actions</th>
@@ -87,7 +87,7 @@
     <div v-if="currentTab === 'staff'">
       <div class="d-flex justify-content-between mb-3">
         <h5 class="fw-bold mb-0">Trek Staff</h5>
-        <button class="btn btn-success btn-sm" @click="openStaffModal()">
+        <button class="btn btn-primary btn-sm" @click="openStaffModal()">
           <i class="bi bi-person-plus me-1"></i>Add Staff Member
         </button>
       </div>
@@ -263,14 +263,46 @@
           <i class="bi bi-bell me-1"></i>Send Daily Reminders
         </button>
       </div>
+
+      <!-- Generated Monthly Reports List -->
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-file-earmark-richtext text-success me-2"></i>Generated Monthly Reports (HTML)
+          </h6>
+          <button class="btn btn-outline-secondary btn-sm" @click="loadMonthlyReportsList">
+            <i class="bi bi-arrow-clockwise me-1"></i>Refresh List
+          </button>
+        </div>
+        <div class="card-body p-0">
+          <div v-if="monthlyReports.length === 0" class="text-center py-4 text-muted small">
+            No monthly reports generated yet. Click "Generate Monthly Report" above to create one.
+          </div>
+          <div v-else class="list-group list-group-flush">
+            <div
+              v-for="rep in monthlyReports"
+              :key="rep"
+              class="list-group-item d-flex justify-content-between align-items-center px-3 py-2"
+            >
+              <div>
+                <i class="bi bi-file-earmark-check text-primary me-2"></i>
+                <span class="fw-semibold">{{ rep }}</span>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" @click="openReport(rep)">
+                <i class="bi bi-box-arrow-up-right me-1"></i>View Report
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ===================== TREK ADD/EDIT MODAL ===================== -->
     <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);" v-if="showTrekModal">
       <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow">
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title">{{ editingTrek ? 'Edit Trek' : 'Add New Trek' }}</h5>
+          <div class="modal-header text-white" style="background-color: var(--accent);">
+            <h5 class="modal-title"><i class="bi bi-map me-2"></i>{{ editingTrek ? 'Edit Trek' : 'Add New Trek' }}</h5>
             <button type="button" class="btn-close btn-close-white" @click="showTrekModal = false"></button>
           </div>
           <div class="modal-body p-4">
@@ -329,8 +361,8 @@
             </div>
           </div>
           <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" @click="showTrekModal = false">Cancel</button>
-            <button type="button" class="btn btn-success" @click="saveTrek" :disabled="savingTrek">
+            <button type="button" class="btn btn-outline-secondary" @click="showTrekModal = false">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="saveTrek" :disabled="savingTrek">
               <span v-if="savingTrek" class="spinner-border spinner-border-sm me-1"></span>
               {{ editingTrek ? 'Save Changes' : 'Create Trek' }}
             </button>
@@ -343,9 +375,9 @@
     <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);" v-if="showStaffModal">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-          <div class="modal-header bg-warning text-dark">
+          <div class="modal-header text-white" style="background-color: var(--accent);">
             <h5 class="modal-title"><i class="bi bi-person-badge me-2"></i>Add Trek Staff</h5>
-            <button type="button" class="btn-close" @click="showStaffModal = false"></button>
+            <button type="button" class="btn-close btn-close-white" @click="showStaffModal = false"></button>
           </div>
           <div class="modal-body p-4">
             <div class="row g-3">
@@ -380,8 +412,8 @@
             </div>
           </div>
           <div class="modal-footer border-0">
-            <button type="button" class="btn btn-secondary" @click="showStaffModal = false">Cancel</button>
-            <button type="button" class="btn btn-warning fw-bold" @click="saveStaff" :disabled="savingStaff">
+            <button type="button" class="btn btn-outline-secondary" @click="showStaffModal = false">Cancel</button>
+            <button type="button" class="btn btn-primary fw-bold" @click="saveStaff" :disabled="savingStaff">
               <span v-if="savingStaff" class="spinner-border spinner-border-sm me-1"></span>
               Create Staff Account
             </button>
@@ -400,33 +432,85 @@ export default {
     return {
       currentTab: 'treks',
       tabs: [
-        { key: 'treks',   label: 'Treks',    icon: 'bi-map' },
-        { key: 'staff',   label: 'Staff',    icon: 'bi-person-badge' },
-        { key: 'users',   label: 'Trekkers', icon: 'bi-people' },
-        { key: 'bookings',label: 'Bookings', icon: 'bi-journal-check' },
-        { key: 'reports', label: 'Reports',  icon: 'bi-bar-chart' },
+        { key: 'treks', label: 'Treks', icon: 'bi-map' },
+        { key: 'staff', label: 'Staff', icon: 'bi-person-badge' },
+        { key: 'users', label: 'Trekkers', icon: 'bi-people' },
+        { key: 'bookings', label: 'Bookings', icon: 'bi-journal-check' },
+        { key: 'reports', label: 'Reports', icon: 'bi-bar-chart' }
       ],
-      treks: [], staff: [], users: [], bookings: [],
-      metrics: { total_treks: 0, total_users: 0, total_staff: 0, total_bookings: 0, total_revenue: 0 },
-      reports: { status_summary: {}, popular_treks: [], total_participants: 0 },
-      alertMessage: '', alertType: 'success',
+      treks: [],
+      staff: [],
+      users: [],
+      bookings: [],
+      metrics: {
+        total_treks: 0,
+        total_users: 0,
+        total_staff: 0,
+        total_bookings: 0,
+        total_revenue: 0
+      },
+      reports: {
+        status_summary: {},
+        popular_treks: [],
+        total_participants: 0
+      },
+      alertMessage: '',
+      alertType: 'success',
       userSearch: '',
-      // Trek modal
-      showTrekModal: false, editingTrek: null, savingTrek: false,
-      trekForm: { name:'', location:'', description:'', difficulty:'Moderate', duration_days:3, total_slots:20, price:0, start_date:'', end_date:'', assigned_staff_id:null, status:'Open' },
-      // Staff modal
-      showStaffModal: false, savingStaff: false,
-      staffForm: { full_name:'', username:'', email:'', phone:'', password:'', experience_years:0, bio:'' },
-      triggeringReport: false, triggeringReminders: false
+
+      // Trek modal state
+      showTrekModal: false,
+      editingTrek: null,
+      savingTrek: false,
+      trekForm: {
+        name: '',
+        location: '',
+        description: '',
+        difficulty: 'Moderate',
+        duration_days: 3,
+        total_slots: 20,
+        price: 0,
+        start_date: '',
+        end_date: '',
+        assigned_staff_id: null,
+        status: 'Open'
+      },
+
+      // Staff modal state
+      showStaffModal: false,
+      savingStaff: false,
+      staffForm: {
+        full_name: '',
+        username: '',
+        email: '',
+        phone: '',
+        password: '',
+        experience_years: 0,
+        bio: ''
+      },
+
+      triggeringReport: false,
+      triggeringReminders: false,
+      monthlyReports: []
     };
+  },
+  watch: {
+    currentTab(newTab) {
+      if (newTab === 'reports') {
+        this.$nextTick(() => {
+          this.renderChart();
+          this.loadMonthlyReportsList();
+        });
+      }
+    }
   },
   computed: {
     metricCards() {
       return [
-        { label:'Total Treks',    value: this.metrics.total_treks,    icon:'bi-map-fill',    iconBg:'bg-primary bg-opacity-10 text-primary' },
-        { label:'Trekkers',       value: this.metrics.total_users,    icon:'bi-people-fill', iconBg:'bg-success bg-opacity-10 text-success' },
-        { label:'Staff Members',  value: this.metrics.total_staff,    icon:'bi-person-badge',iconBg:'bg-warning bg-opacity-10 text-warning' },
-        { label:'Total Bookings', value: this.metrics.total_bookings, icon:'bi-journal-text',iconBg:'bg-info bg-opacity-10 text-info' },
+        { label: 'Total Treks', value: this.metrics.total_treks, icon: 'bi-map-fill' },
+        { label: 'Trekkers', value: this.metrics.total_users, icon: 'bi-people-fill' },
+        { label: 'Staff Members', value: this.metrics.total_staff, icon: 'bi-person-badge' },
+        { label: 'Total Bookings', value: this.metrics.total_bookings, icon: 'bi-journal-text' }
       ];
     }
   },
@@ -437,87 +521,151 @@ export default {
     showAlert(msg, type = 'success') {
       this.alertMessage = msg;
       this.alertType = type;
-      setTimeout(() => { this.alertMessage = ''; }, 4500);
+      setTimeout(() => {
+        this.alertMessage = '';
+      }, 4500);
     },
+
     async apiFetch(url, options = {}) {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.auth.token}`,
+        ...(options.headers || {})
+      };
       return fetch(url, {
         ...options,
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.auth.token}`, ...(options.headers || {}) }
+        headers: headers
       });
     },
+
     async loadAll() {
       await Promise.all([
-        this.loadDashboard(), this.loadTreks(),
-        this.loadStaff(), this.loadUsers(),
-        this.loadBookings(), this.loadReports()
+        this.loadDashboard(),
+        this.loadTreks(),
+        this.loadStaff(),
+        this.loadUsers(),
+        this.loadBookings(),
+        this.loadReports(),
+        this.loadMonthlyReportsList()
       ]);
     },
+
     async loadDashboard() {
       try {
         const res = await this.apiFetch('/api/admin/dashboard');
         const data = await res.json();
-        if (data.success) this.metrics = data.metrics;
-      } catch(e) {}
+        if (data.success) {
+          this.metrics = data.metrics;
+        }
+      } catch (err) {
+        console.error('Error loading dashboard metrics', err);
+      }
     },
+
     async loadTreks() {
-      const res = await fetch('/api/treks');
-      const data = await res.json();
-      if (data.success) this.treks = data.treks;
+      try {
+        const res = await fetch('/api/treks');
+        const data = await res.json();
+        if (data.success) {
+          this.treks = data.treks;
+        }
+      } catch (err) {
+        console.error('Error loading treks', err);
+      }
     },
+
     async loadStaff() {
-      const res = await this.apiFetch('/api/admin/staff');
-      const data = await res.json();
-      if (data.success) this.staff = data.staff;
+      try {
+        const res = await this.apiFetch('/api/admin/staff');
+        const data = await res.json();
+        if (data.success) {
+          this.staff = data.staff;
+        }
+      } catch (err) {
+        console.error('Error loading staff', err);
+      }
     },
+
     async loadUsers() {
-      const url = this.userSearch
-        ? `/api/admin/users?role=user&search=${encodeURIComponent(this.userSearch)}`
-        : '/api/admin/users?role=user';
-      const res = await this.apiFetch(url);
-      const data = await res.json();
-      if (data.success) this.users = data.users;
+      let url = '/api/admin/users?role=user';
+      if (this.userSearch) {
+        url = `/api/admin/users?role=user&search=${encodeURIComponent(this.userSearch)}`;
+      }
+      try {
+        const res = await this.apiFetch(url);
+        const data = await res.json();
+        if (data.success) {
+          this.users = data.users;
+        }
+      } catch (err) {
+        console.error('Error loading users', err);
+      }
     },
+
     async searchUsers() {
       await this.loadUsers();
     },
+
     async loadBookings() {
-      const res = await this.apiFetch('/api/admin/bookings');
-      const data = await res.json();
-      if (data.success) this.bookings = data.bookings;
-    },
-    async loadReports() {
-      const res = await this.apiFetch('/api/admin/reports');
-      const data = await res.json();
-      if (data.success) {
-        this.reports = data;
-        this.$nextTick(() => { this.renderChart(); });
+      try {
+        const res = await this.apiFetch('/api/admin/bookings');
+        const data = await res.json();
+        if (data.success) {
+          this.bookings = data.bookings;
+        }
+      } catch (err) {
+        console.error('Error loading bookings', err);
       }
     },
+
+    async loadReports() {
+      try {
+        const res = await this.apiFetch('/api/admin/reports');
+        const data = await res.json();
+        if (data.success) {
+          this.reports = data;
+          this.$nextTick(() => {
+            this.renderChart();
+          });
+        }
+      } catch (err) {
+        console.error('Error loading reports', err);
+      }
+    },
+
     renderChart() {
-      if (typeof Chart === 'undefined') return;
+      if (typeof Chart === 'undefined') {
+        return;
+      }
       const canvas = document.getElementById('analyticsChart');
-      if (!canvas) return;
+      if (!canvas) {
+        return;
+      }
       if (this.chartInstance) {
         this.chartInstance.destroy();
       }
-      const labels = (this.reports.popular_treks || []).map(t => t.name);
-      const bookedData = (this.reports.popular_treks || []).map(t => t.slots_booked);
-      const totalData = (this.reports.popular_treks || []).map(t => t.total_slots);
+
+      const popularTreks = this.reports.popular_treks || [];
+      const labels = popularTreks.map(t => t.name);
+      const bookedData = popularTreks.map(t => t.slots_booked);
+      const totalData = popularTreks.map(t => t.total_slots);
 
       this.chartInstance = new Chart(canvas, {
         type: 'bar',
         data: {
-          labels: labels.length ? labels : ['No Treks'],
+          labels: labels.length > 0 ? labels : ['No Treks'],
           datasets: [
             {
               label: 'Slots Booked',
-              data: bookedData.length ? bookedData : [0],
-              backgroundColor: '#198754'
+              data: bookedData.length > 0 ? bookedData : [0],
+              backgroundColor: '#1F6F5C'
             },
             {
               label: 'Total Capacity',
-              data: totalData.length ? totalData : [0],
-              backgroundColor: '#0d6efd'
+              data: totalData.length > 0 ? totalData : [0],
+              backgroundColor: '#E4F1ED',
+              borderColor: '#1F6F5C',
+              borderWidth: 1
             }
           ]
         },
@@ -534,37 +682,75 @@ export default {
         }
       });
     },
-    getDiffBadge(d) {
-      if (d === 'Easy') return 'badge-easy';
-      if (d === 'Moderate') return 'badge-moderate';
+
+    getDiffBadge(difficulty) {
+      if (difficulty === 'Easy') {
+        return 'badge-easy';
+      }
+      if (difficulty === 'Moderate') {
+        return 'badge-moderate';
+      }
       return 'badge-hard';
     },
+
     getBookingBadge(status) {
-      if (status === 'Booked') return 'badge bg-success';
-      if (status === 'Cancelled') return 'badge bg-danger';
+      if (status === 'Booked') {
+        return 'badge bg-success';
+      }
+      if (status === 'Cancelled') {
+        return 'badge bg-danger';
+      }
       return 'badge bg-info text-dark';
     },
+
     openTrekModal(trek = null) {
       this.editingTrek = trek;
       if (trek) {
         this.trekForm = {
-          name: trek.name, location: trek.location, description: trek.description || '',
-          difficulty: trek.difficulty, duration_days: trek.duration_days,
-          total_slots: trek.total_slots, price: trek.price,
-          start_date: trek.start_date, end_date: trek.end_date,
-          assigned_staff_id: trek.assigned_staff_id, status: trek.status
+          name: trek.name,
+          location: trek.location,
+          description: trek.description || '',
+          difficulty: trek.difficulty,
+          duration_days: trek.duration_days,
+          total_slots: trek.total_slots,
+          price: trek.price,
+          start_date: trek.start_date,
+          end_date: trek.end_date,
+          assigned_staff_id: trek.assigned_staff_id,
+          status: trek.status
         };
       } else {
-        this.trekForm = { name:'', location:'', description:'', difficulty:'Moderate', duration_days:3, total_slots:20, price:0, start_date:'', end_date:'', assigned_staff_id:null, status:'Open' };
+        this.trekForm = {
+          name: '',
+          location: '',
+          description: '',
+          difficulty: 'Moderate',
+          duration_days: 3,
+          total_slots: 20,
+          price: 0,
+          start_date: '',
+          end_date: '',
+          assigned_staff_id: null,
+          status: 'Open'
+        };
       }
       this.showTrekModal = true;
     },
+
     async saveTrek() {
       this.savingTrek = true;
       try {
-        const url = this.editingTrek ? `/api/treks/${this.editingTrek.id}` : '/api/treks';
-        const method = this.editingTrek ? 'PUT' : 'POST';
-        const res = await this.apiFetch(url, { method, body: JSON.stringify(this.trekForm) });
+        let url = '/api/treks';
+        let method = 'POST';
+        if (this.editingTrek) {
+          url = `/api/treks/${this.editingTrek.id}`;
+          method = 'PUT';
+        }
+
+        const res = await this.apiFetch(url, {
+          method: method,
+          body: JSON.stringify(this.trekForm)
+        });
         const data = await res.json();
         if (data.success) {
           this.showAlert(data.message, 'success');
@@ -574,27 +760,54 @@ export default {
         } else {
           this.showAlert(data.message, 'danger');
         }
-      } catch(e) {
+      } catch (e) {
         this.showAlert('Network error saving trek.', 'danger');
       } finally {
         this.savingTrek = false;
       }
     },
+
     async deleteTrek(id, name) {
-      if (!confirm(`Delete trek "${name}"? Active bookings will block this action.`)) return;
-      const res = await this.apiFetch(`/api/treks/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) { this.showAlert(data.message, 'success'); this.loadTreks(); this.loadDashboard(); }
-      else { this.showAlert(data.message, 'danger'); }
+      const confirmed = confirm(`Delete trek "${name}"? Active bookings will block this action.`);
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const res = await this.apiFetch(`/api/treks/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          this.showAlert(data.message, 'success');
+          this.loadTreks();
+          this.loadDashboard();
+        } else {
+          this.showAlert(data.message, 'danger');
+        }
+      } catch (err) {
+        this.showAlert('Error deleting trek.', 'danger');
+      }
     },
+
     openStaffModal() {
-      this.staffForm = { full_name:'', username:'', email:'', phone:'', password:'', experience_years:0, bio:'' };
+      this.staffForm = {
+        full_name: '',
+        username: '',
+        email: '',
+        phone: '',
+        password: '',
+        experience_years: 0,
+        bio: ''
+      };
       this.showStaffModal = true;
     },
+
     async saveStaff() {
       this.savingStaff = true;
       try {
-        const res = await this.apiFetch('/api/admin/staff', { method: 'POST', body: JSON.stringify(this.staffForm) });
+        const res = await this.apiFetch('/api/admin/staff', {
+          method: 'POST',
+          body: JSON.stringify(this.staffForm)
+        });
         const data = await res.json();
         if (data.success) {
           this.showAlert(data.message, 'success');
@@ -604,47 +817,94 @@ export default {
         } else {
           this.showAlert(data.message, 'danger');
         }
-      } catch(e) {
+      } catch (e) {
         this.showAlert('Error creating staff member.', 'danger');
       } finally {
         this.savingStaff = false;
       }
     },
+
     async toggleUserStatus(userId, name, currentStatus) {
-      const action = currentStatus ? 'deactivate/blacklist' : 'reactivate';
-      if (!confirm(`Are you sure you want to ${action} "${name}"?`)) return;
-      const res = await this.apiFetch(`/api/admin/users/${userId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ is_active: !currentStatus })
-      });
-      const data = await res.json();
-      if (data.success) {
-        this.showAlert(data.message, 'success');
-        this.loadStaff();
-        this.loadUsers();
-      } else {
-        this.showAlert(data.message, 'danger');
+      let action = 'reactivate';
+      if (currentStatus) {
+        action = 'deactivate/blacklist';
+      }
+      const confirmed = confirm(`Are you sure you want to ${action} "${name}"?`);
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const res = await this.apiFetch(`/api/admin/users/${userId}/status`, {
+          method: 'PUT',
+          body: JSON.stringify({ is_active: !currentStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.showAlert(data.message, 'success');
+          this.loadStaff();
+          this.loadUsers();
+        } else {
+          this.showAlert(data.message, 'danger');
+        }
+      } catch (err) {
+        this.showAlert('Error updating user status.', 'danger');
       }
     },
+
     async triggerMonthlyReport() {
       this.triggeringReport = true;
       try {
         const res = await this.apiFetch('/api/admin/trigger-monthly-report', { method: 'POST' });
         const data = await res.json();
         this.showAlert(data.message || 'Monthly report generated!', 'success');
-      } catch(e) {
+        this.loadMonthlyReportsList();
+      } catch (e) {
         this.showAlert('Report generation failed.', 'danger');
       } finally {
         this.triggeringReport = false;
       }
     },
+
+    async loadMonthlyReportsList() {
+      try {
+        const res = await this.apiFetch('/api/admin/reports/monthly');
+        const data = await res.json();
+        if (data.success) {
+          this.monthlyReports = data.reports;
+        }
+      } catch (err) {
+        console.error('Error loading monthly reports list', err);
+      }
+    },
+
+    async openReport(filename) {
+      try {
+        const res = await fetch(`/api/admin/reports/monthly/${filename}`, {
+          headers: { 'Authorization': `Bearer ${this.auth.token}` }
+        });
+        if (res.ok) {
+          const html = await res.text();
+          const win = window.open('', '_blank');
+          if (win) {
+            win.document.write(html);
+            win.document.close();
+          }
+        } else {
+          this.showAlert('Could not load report file.', 'danger');
+        }
+      } catch (err) {
+        this.showAlert('Error opening report.', 'danger');
+      }
+    },
+
     async triggerDailyReminders() {
       this.triggeringReminders = true;
       try {
         const res = await this.apiFetch('/api/admin/trigger-daily-reminders', { method: 'POST' });
         const data = await res.json();
         this.showAlert(data.message || 'Reminders sent!', 'success');
-      } catch(e) {
+      } catch (e) {
         this.showAlert('Reminder dispatch failed.', 'danger');
       } finally {
         this.triggeringReminders = false;

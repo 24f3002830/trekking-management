@@ -3,39 +3,58 @@
  * Uses Vue 3, Vue Router 4, and vue3-sfc-loader to load Single File Components (.vue)
  */
 
-const { createApp, ref, reactive } = Vue;
+const { createApp, reactive } = Vue;
 const { createRouter, createWebHashHistory } = VueRouter;
 
-// Global authentication and user state
+// When opening the application via the local link (base URL), start fresh on the login page
+if (!window.location.hash || window.location.hash === '#/' || window.location.hash === '#') {
+    localStorage.removeItem('tma_token');
+    localStorage.removeItem('tma_user');
+    sessionStorage.removeItem('tma_token');
+    sessionStorage.removeItem('tma_user');
+    window.location.hash = '#/login';
+}
+
+// Global authentication and user state using sessionStorage (resets when browser/tab is closed)
 export const authState = reactive({
-    token: localStorage.getItem('tma_token') || null,
-    user: JSON.parse(localStorage.getItem('tma_user') || 'null'),
+    token: sessionStorage.getItem('tma_token') || null,
+    user: JSON.parse(sessionStorage.getItem('tma_user') || 'null'),
+
     isAuthenticated() {
-        return !!this.token && !!this.user;
+        if (this.token && this.user) {
+            return true;
+        }
+        return false;
     },
+
     login(token, user) {
         this.token = token;
         this.user = user;
-        localStorage.setItem('tma_token', token);
-        localStorage.setItem('tma_user', JSON.stringify(user));
+        sessionStorage.setItem('tma_token', token);
+        sessionStorage.setItem('tma_user', JSON.stringify(user));
     },
+
     logout() {
         this.token = null;
         this.user = null;
+        sessionStorage.removeItem('tma_token');
+        sessionStorage.removeItem('tma_user');
         localStorage.removeItem('tma_token');
         localStorage.removeItem('tma_user');
         window.location.hash = '#/login';
     }
 });
 
-// Configure vue3-sfc-loader options to load .vue files directly
+// Configure vue3-sfc-loader to load .vue components directly in the browser
 const sfcOptions = {
     moduleCache: {
         vue: Vue
     },
     async getFile(url) {
         const res = await fetch(url);
-        if (!res.ok) throw new Error(`Failed to load ${url}: ${res.statusText}`);
+        if (!res.ok) {
+            throw new Error(`Failed to load ${url}: ${res.statusText}`);
+        }
         return await res.text();
     },
     addStyle(textContent) {
@@ -48,34 +67,46 @@ const sfcOptions = {
 
 const { loadModule } = window['vue3-sfc-loader'];
 
-// Helper to asynchronously load .vue components
-const loadComponent = (name) => () => loadModule(`/frontend/src/components/${name}.vue`, sfcOptions);
+// Helper function to asynchronously load .vue components
+function loadComponent(name) {
+    return function() {
+        return loadModule(`/frontend/src/components/${name}.vue`, sfcOptions);
+    };
+}
 
-// Define Vue Routes
+// Route definitions for the Single Page Application
 const routes = [
-    { path: '/', component: loadComponent('TrekkerDashboard'), meta: { title: 'Explore Treks' } },
+    { path: '/', redirect: '/login' },
     { path: '/login', component: loadComponent('LoginView'), meta: { title: 'Login' } },
+    { path: '/treks', component: loadComponent('TrekkerDashboard'), meta: { title: 'Explore Treks' } },
     { path: '/register', component: loadComponent('RegisterView'), meta: { title: 'Register' } },
     { path: '/profile', component: loadComponent('ProfileView'), meta: { requiresAuth: true } },
     { path: '/staff', component: loadComponent('StaffDashboard'), meta: { requiresAuth: true, role: 'staff' } },
     { path: '/admin', component: loadComponent('AdminDashboard'), meta: { requiresAuth: true, role: 'admin' } },
-    { path: '/:pathMatch(.*)*', redirect: '/' }
+    { path: '/:pathMatch(.*)*', redirect: '/login' }
 ];
 
 const router = createRouter({
     history: createWebHashHistory(),
-    routes
+    routes: routes
 });
 
 // Navigation Guards for Role-Based Access Control
 router.beforeEach((to, from, next) => {
+    // Check if route requires login
     if (to.meta.requiresAuth && !authState.isAuthenticated()) {
         return next('/login');
     }
-    if (to.meta.role && authState.user?.role !== to.meta.role && authState.user?.role !== 'admin') {
-        alert('Access denied: insufficient permissions.');
-        return next('/');
+
+    // Check if user has required role
+    if (to.meta.role) {
+        const currentRole = authState.user ? authState.user.role : null;
+        if (currentRole !== to.meta.role && currentRole !== 'admin') {
+            alert('Access denied: insufficient permissions.');
+            return next('/treks');
+        }
     }
+
     next();
 });
 
@@ -90,12 +121,6 @@ const App = {
             <main class="main-content container py-4">
                 <router-view></router-view>
             </main>
-            <footer class="footer-custom text-center mt-auto">
-                <div class="container">
-                    <p class="mb-1"><strong>Trekking Management Application (TMA) - V2</strong></p>
-                    <small>Built with Flask, Vue.js, Bootstrap & SQLite | Student ID: 24f3002830</small>
-                </div>
-            </footer>
         </div>
     `
 };

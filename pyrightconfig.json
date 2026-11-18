@@ -1,0 +1,15 @@
+{
+  "include": [
+    "backend"
+  ],
+  "extraPaths": [
+    "./",
+    "./backend"
+  ],
+  "reportCallIssue": "none",
+  "reportFunctionMemberAccess": "none",
+  "reportGeneralTypeIssues": "none",
+  "reportAttributeAccessIssue": "none",
+  "reportOptionalMemberAccess": "none",
+  "reportArgumentType": "none"
+}

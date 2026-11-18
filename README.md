@@ -1,188 +1,92 @@
-# Trekking Management Application (TMA) - V2
+# Trekking Management Application
+
+A full-stack web application designed for adventure trekking organizations to manage multi-day expeditions, guide assignments, participant registrations, reviews, and safety operations.
+
+Built as a Single Page Application (SPA) using Vue 3 on the frontend and Python Flask on the backend.
 
 ---
 
-## 📌 Project Overview
+## Tech Stack
 
-The **Trekking Management Application (TMA)** is a multi-role web platform designed for adventure organizations to streamline and digitize trekking operations. It replaces manual coordination, spreadsheets, and phone calls with an automated system for managing trek approvals, slot availability, participant registrations, and booking tracking.
-
----
-
-## 👥 User Roles & Core Capabilities
-
-### 1. 🛡️ Admin (Pre-existing Superuser)
-- Created programmatically upon database initialization (no public registration).
-- Dashboard with high-level analytics: total treks, active users, staff, and bookings.
-- Create, update, and manage trekking routes and schedules.
-- Add and manage trek staff, and assign staff to specific treks.
-- Search, view, and moderate (deactivate/blacklist) users and staff.
-- View trekking statistics and automated monthly performance reports.
-
-### 2. 🥾 Trek Staff
-- Log in using credentials provisioned by the Admin.
-- Dedicated staff dashboard displaying assigned treks and participant counts.
-- Manage trek capacity and real-time status (`Open`, `Closed`, `Started`, `Completed`).
-- View and manage registered participants per assigned trek.
-
-### 3. 🎒 User (Trekker)
-- Self-registration, profile management, and authentication.
-- Browse, search, and filter treks by difficulty (*Easy*, *Moderate*, *Hard*), location, and duration.
-- Book open treks with real-time slot checking (prevents duplicate bookings and overbooking).
-- View personal booking statuses, upcoming itineraries, and trekking history.
-- Trigger asynchronous CSV export of booking and trekking history.
+* **Frontend:** Vue 3, Vue Router, Bootstrap 5
+* **Backend:** Python 3, Flask, Flask-SQLAlchemy, Flask-CORS, PyJWT
+* **Database:** SQLite
+* **Caching & Broker:** Redis
+* **Async Jobs:** Celery & Celery Beat (with automatic synchronous fallbacks if Redis is offline)
 
 ---
 
-## ⚙️ Technology Stack
-
-| Layer | Framework / Technology | Purpose |
-| :--- | :--- | :--- |
-| **Backend API** | Flask (Python) | RESTful API backend, business logic, and RBAC authentication |
-| **Frontend UI** | Vue.js + Bootstrap | Reactive single-page user interface and responsive styling |
-| **Database** | SQLite | Programmatically initialized relational database storage |
-| **Caching** | Redis | Caching frequently accessed trek details with TTL expiration |
-| **Batch Processing** | Redis + Celery | Scheduled reminders, monthly reports, and async CSV exports |
-
----
-
-## 📂 Project Directory Structure
+## Project Structure
 
 ```text
 trekking-management/
 ├── backend/
-│   ├── models/            # SQLAlchemy / Database models
-│   ├── routes/            # Flask API route blueprints
-│   └── app.py             # Flask application entry point
+│   ├── models/            # SQLAlchemy database models
+│   ├── routes/            # REST API blueprints (auth, admin, staff, treks, bookings)
+│   ├── templates/         # Jinja2 root template (index.html)
+│   ├── app.py             # Flask application entry point
+│   ├── cache.py           # Redis caching helper
+│   ├── celery_app.py      # Celery task configuration
+│   ├── tasks.py           # Background tasks (reminders, reports, CSV export)
+│   └── seed_data.py       # Realistic sample data seeder
 ├── frontend/
-│   └── src/
-│       └── components/    # Vue.js reusable UI components
-├── .gitignore             # Git ignore configuration
-└── README.md              # Project documentation & setup guide
+│   ├── src/
+│   │   ├── components/    # Vue Single File Components (.vue)
+│   │   └── app.js         # Frontend router and state setup
+│   ├── manifest.json      # PWA manifest
+│   └── sw.js              # Service worker script
+└── README.md
 ```
 
 ---
 
-## 🔄 Celery & Background Jobs
-
-1. **Daily Reminders (Scheduled Job):** Sends daily notifications/reminders to users regarding upcoming trek schedules and guidelines via email or webhooks.
-2. **Monthly Activity Report (Scheduled Job):** Generates and emails a monthly activity and analytics summary to the Admin on the first day of each month.
-3. **Async CSV Export (User-Triggered Job):** Allows users to export their complete trekking and booking history as a downloadable CSV.
-
----
-
-## 🚀 Milestone Progress
-
-- [x] **Milestone 0:** GitHub Repository Setup, initial directory structure, `.gitignore`, and `README.md`.
-- [x] **Milestone 1:** Database models (SQLite), programmatic schema initialization, pre-seeded Admin, and JWT RBAC authentication APIs.
-- [x] **Milestone 2:** Admin, Staff, and User API endpoints, slot management, and Redis caching.
-- [x] **Milestone 3:** Celery asynchronous tasks, periodic daily reminders, monthly reports, and CSV export.
-- [x] **Milestone 4:** Vue.js + Bootstrap reactive frontend integration (SFC Single Page Application).
-- [x] **Milestone 5:** End-to-end testing, realistic demo seeding, packaging, and final polish.
-- [x] **Milestone 6:** Payment simulation, in-app notification center, Chart.js analytics, and comprehensive user manual.
-- [x] **Milestone 7:** Trek Reviews & 5-Star Ratings, Progressive Web App (PWA) manifest & service worker for "Add to Desktop".
-- [x] **Milestone 8:** Trekker Medical & Emergency Safety Profile, Day-wise Itinerary & Gear Checklist, and Staff Participant Attendance / Check-In Management.
-
----
-
-## 💻 Running the Application & Verification
+## How to Run
 
 ### 1. Install Dependencies
 ```bash
 pip install -r backend/requirements.txt
 ```
 
-### 2. Populate Realistic Demo Data (Optional but Recommended)
+### 2. Populate Sample Data (Recommended)
 ```bash
 python backend/seed_data.py
 ```
-Pre-populates the database with Himalayan treks across Uttarakhand, Himachal & Ladakh, certified staff members, sample trekkers, and bookings.
+This sets up realistic Himalayan treks, certified staff guides, sample trekkers, and existing bookings.
 
-### 3. Run All Automated Verification Tests Consecutively
-```bash
-python run_all_tests.py
-```
-*(Runs all 8 milestone test suites: test_milestone1.py through test_milestone8.py consecutively).*
-
-### 4. Start the Full-Stack Web Application
+### 3. Start the Web Server
 ```bash
 python backend/app.py
 ```
-Open your browser and navigate to: **`http://127.0.0.1:5000/`**
-
-Default superuser credentials (seeded programmatically):
-- **Email:** `admin@trekking.com` (or username: `admin`)
-- **Password:** `Admin@123`
-
-### 5. Packaging the Project for Submission
-```bash
-python package_submission.py
-```
-Generates `trekking_management_24f3002830.zip` adhering strictly to the folder structure required for MAD-2 evaluation.
-
-### 6. Full Documentation & User Manual
-Refer to [`USER_MANUAL.md`](USER_MANUAL.md) for step-by-step role guides, screenshots/workflow overviews, and developer reference.
+Once started, open your browser at: **`http://127.0.0.1:5000/`**
 
 ---
 
-## 🖥️ Frontend Architecture & UI Components
+## Default Login Credentials
 
-The frontend is a reactive Single Page Application (SPA) built using **Vue 3**, **Vue Router 4**, and styled exclusively with **Bootstrap 5**:
+| Role | Username / Email | Password | What They Can Do |
+| :--- | :--- | :--- | :--- |
+| **Admin** | `admin` (or `admin@trekking.com`) | `Admin@123` | Full dashboard metrics, create/edit treks, add staff, manage users, view reports |
+| **Trek Staff** | `staff_arjun` | `StaffPassword123` | View assigned expeditions, manage slot capacity, update status, participant check-in |
+| **Trekker** | `trekker_rahul` | `Password123` | Search & book treks, cancel bookings, view itinerary & packing gear list, post reviews |
 
-| Component | Path | Description |
-| :--- | :--- | :--- |
-| **Navbar** | `frontend/src/components/Navbar.vue` | Responsive navbar with role-based navigation and profile badge |
-| **LoginView** | `frontend/src/components/LoginView.vue` | Unified login with demo quick-fill buttons for Admin, Staff, & Trekker |
-| **RegisterView**| `frontend/src/components/RegisterView.vue` | Self-registration form for Trekkers with client-side validation |
-| **TrekkerDashboard** | `frontend/src/components/TrekkerDashboard.vue`| Explore & filter treks, slot booking modal, booking history, & CSV export |
-| **StaffDashboard** | `frontend/src/components/StaffDashboard.vue` | Manage assigned treks, update status/slots, & view participant lists |
-| **AdminDashboard** | `frontend/src/components/AdminDashboard.vue` | High-level metrics, trek CRUD, staff provisioning, user moderation, & reports |
-| **ProfileView** | `frontend/src/components/ProfileView.vue` | View and update profile details (name, phone) |
+*New trekkers can also self-register directly through the **Register** page.*
 
-### 4. Running Celery Worker & Beat (Optional for Background Batch Processing)
+---
+
+## Background Tasks (Celery & Redis)
+
+The application includes automated asynchronous jobs:
+1. **Daily Reminders:** Dispatches alerts to participants 3 days before their trek starts.
+2. **Monthly Activity Report:** Compiles a summary report of bookings and revenue for the admin.
+3. **Async CSV Export:** Allows users to download their complete trekking history as a CSV file.
+
+*Note: If Redis or Celery is not running locally, TMA automatically falls back to executing batch operations synchronously so all features remain testable without external services.*
+
+To start Celery manually (optional):
 ```bash
-# Start Celery Worker
+# In terminal 1 - Worker
 celery -A backend.celery_app.celery worker --loglevel=info
 
-# Start Celery Beat (Periodic Scheduler)
+# In terminal 2 - Scheduler
 celery -A backend.celery_app.celery beat --loglevel=info
 ```
-*(Note: If Redis or Celery is offline, TMA automatically executes background batch jobs via built-in synchronous fallbacks so that local evaluation and demonstrations run without external services).*
-
----
-
-## 🔌 API Endpoints Summary
-
-| Blueprint | Method | Endpoint | Access | Purpose |
-| :--- | :--- | :--- | :--- | :--- |
-| **Auth** | `POST` | `/api/auth/register` | Public | Trekker self-registration |
-| | `POST` | `/api/auth/login` | Public | Unified login (Admin, Staff, Trekker) |
-| | `GET` | `/api/auth/profile` | Authenticated | View current profile |
-| | `PUT` | `/api/auth/profile` | Authenticated | Update current profile |
-| **Treks** | `GET` | `/api/treks` | Public | List & search/filter treks (Cached) |
-| | `GET` | `/api/treks/<id>` | Public | View single trek details |
-| | `POST` | `/api/treks` | Admin | Create trekking route |
-| | `PUT` | `/api/treks/<id>` | Admin | Update trek details |
-| | `DELETE` | `/api/treks/<id>` | Admin | Remove trek route |
-| | `GET` | `/api/treks/<id>/reviews` | Public | List reviews & star ratings for a trek |
-| | `POST` | `/api/treks/<id>/reviews` | Trekker | Submit star rating (1-5) and feedback |
-| **Notifications** | `GET` | `/api/notifications` | Authenticated | Fetch in-app notifications & unread count |
-| | `PUT` | `/api/notifications/<id>/read` | Authenticated | Mark notification as read |
-| | `PUT` | `/api/notifications/read-all` | Authenticated | Mark all notifications as read |
-| **PWA** | `GET` | `/manifest.json` | Public | Web app manifest for Add to Desktop |
-| | `GET` | `/sw.js` | Public | Service worker script for offline shell |
-| **Bookings**| `POST` | `/api/bookings` | Trekker | Book slots (prevents duplicate/overbooking) |
-| | `GET` | `/api/bookings/my-bookings` | Trekker | View personal booking history |
-| | `PUT` | `/api/bookings/<id>/cancel`| Owner/Admin | Cancel booking & return slots |
-| **Staff** | `GET` | `/api/staff/dashboard` | Staff | View assigned treks & participant counts |
-| | `GET` | `/api/staff/treks/<id>/participants` | Staff/Admin | View participants manifest with emergency details |
-| | `PUT` | `/api/staff/bookings/<id>/check-in` | Staff/Admin | Update participant check-in attendance & medical clearance |
-| | `PUT` | `/api/staff/treks/<id>/status` | Staff/Admin | Update status (Open/Started/Completed) |
-| | `PUT` | `/api/staff/treks/<id>/slots` | Staff/Admin | Update available slot capacity |
-| **Admin** | `GET` | `/api/admin/dashboard` | Admin | Overall metrics & recent activity |
-| | `GET` | `/api/admin/users` | Admin | Search users & filter by role/status |
-| | `PUT` | `/api/admin/users/<id>/status` | Admin | Deactivate / blacklist / reactivate user |
-| | `POST` | `/api/admin/staff` | Admin | Add new Trek Staff with profile |
-| | `GET` | `/api/admin/staff` | Admin | List all staff & assigned trek counts |
-| | `PUT` | `/api/admin/treks/<id>/assign-staff` | Admin | Assign staff to a trek |
-| | `GET` | `/api/admin/bookings` | Admin | View all system-wide bookings |
-| | `GET` | `/api/admin/reports` | Admin | Aggregated trekking statistics |

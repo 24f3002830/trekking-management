@@ -4,11 +4,11 @@
       <div class="card shadow-sm border-0 mt-3">
         <div class="card-body p-4">
           <div class="text-center mb-4">
-            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width:80px;height:80px;">
-              <i class="bi bi-person-circle text-primary" style="font-size:3rem;"></i>
+            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:80px;height:80px; background-color: var(--accent-tint); color: var(--accent);">
+              <i class="bi bi-person-circle" style="font-size:3rem; color: var(--accent);"></i>
             </div>
             <h4 class="fw-bold mt-3">My Profile</h4>
-            <span class="badge bg-primary text-uppercase">{{ auth.user?.role }}</span>
+            <span class="badge text-uppercase" style="background-color: var(--accent); color: var(--text-on-accent);">{{ auth.user?.role }}</span>
           </div>
 
           <div v-if="alertMessage" :class="['alert', 'alert-' + alertType]">{{ alertMessage }}</div>
@@ -32,9 +32,9 @@
               <input type="tel" v-model="form.phone" class="form-control" placeholder="e.g. 9876543210" />
             </div>
 
-            <!-- Trekker Emergency & Medical Safety Profile -->
-            <div class="card bg-light border-0 p-3 mb-4">
-              <h6 class="fw-bold text-danger mb-3">
+            <!-- Trekker Emergency & Medical Safety Profile (Trekkers & Staff only) -->
+            <div v-if="auth.user?.role !== 'admin'" class="card p-3 mb-4" style="background-color: var(--bg-page); border: 1px solid var(--border-color);">
+              <h6 class="fw-bold mb-3" style="color: var(--status-error);">
                 <i class="bi bi-heart-pulse-fill me-2"></i>Emergency & Medical Safety Profile
               </h6>
               <div class="row g-2 mb-2">

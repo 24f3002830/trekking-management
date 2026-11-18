@@ -9,7 +9,7 @@ Populates SQLite with realistic demo data:
 
 import os
 import sys
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '..'))
@@ -41,9 +41,9 @@ def seed_database():
             admin.set_password('Admin@123')
             db.session.add(admin)
             db.session.commit()
-            print("  ✅ Admin: admin@trekking.com / Admin@123")
+            print("  Admin: admin@trekking.com / Admin@123")
         else:
-            print("  ℹ️ Admin already exists.")
+            print("  Admin already exists.")
 
         # 2. Staff Members
         staff_data = [
@@ -104,7 +104,7 @@ def seed_database():
                 )
                 db.session.add(profile)
                 db.session.commit()
-                print(f"  ✅ Staff created: {s['username']}")
+                print(f"  Staff created: {s['username']}")
             staff_users[s['username']] = user
 
         # 3. Sample Trekkers (Regular Users)
@@ -134,7 +134,7 @@ def seed_database():
                 user.set_password('Password123')
                 db.session.add(user)
                 db.session.commit()
-                print(f"  ✅ Trekker created: {t['username']}")
+                print(f"  Trekker created: {t['username']}")
             else:
                 user.emergency_contact_name = t.get('emergency_contact_name')
                 user.emergency_contact_phone = t.get('emergency_contact_phone')
@@ -257,7 +257,7 @@ def seed_database():
                 )
                 db.session.add(trek)
                 db.session.commit()
-                print(f"  ✅ Trek seeded: {td['name']}")
+                print(f"  Trek seeded: {td['name']}")
             else:
                 trek.itinerary = sample_itinerary
                 trek.gear_checklist = sample_gear
@@ -282,7 +282,7 @@ def seed_database():
                     trek_id=sb['trek'].id,
                     slots_booked=sb['slots'],
                     total_price=sb['slots'] * sb['trek'].price,
-                    booking_date=datetime.utcnow() - timedelta(days=2),
+                    booking_date=datetime.now(timezone.utc) - timedelta(days=2),
                     status='Booked',
                     payment_status='Paid'
                 )
@@ -290,7 +290,7 @@ def seed_database():
                 db.session.commit()
 
         clear_cache("treks:*")
-        print("🎉 Database seeded successfully with realistic demonstration data!\n")
+        print(" Database seeded successfully with realistic demonstration data!\n")
 
 
 if __name__ == '__main__':

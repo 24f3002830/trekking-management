@@ -4,7 +4,7 @@
       <div class="card shadow-sm border-0 mt-3">
         <div class="card-body p-4">
           <div class="text-center mb-4">
-            <i class="bi bi-person-plus-fill display-4 text-success"></i>
+            <i class="bi bi-person-plus-fill display-4" style="color: var(--accent);"></i>
             <h3 class="fw-bold mt-2">Join TMA Community</h3>
             <p class="text-muted">Register as a Trekker to discover and book adventures</p>
           </div>
@@ -52,7 +52,7 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-success w-100 py-2 fw-semibold" :disabled="loading">
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" :disabled="loading">
               <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
               {{ loading ? 'Creating Account...' : 'Complete Registration' }}
             </button>
@@ -61,7 +61,7 @@
           <div class="text-center mt-3">
             <p class="small text-muted mb-0">
               Already have an account?
-              <router-link to="/login" class="fw-bold text-decoration-none text-primary">Log in here</router-link>
+              <router-link to="/login" class="fw-bold text-decoration-none" style="color: var(--accent);">Log in here</router-link>
             </p>
           </div>
         </div>

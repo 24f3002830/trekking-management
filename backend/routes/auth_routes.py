@@ -1,10 +1,5 @@
-"""
-Authentication & Authorization Routes for Trekking Management Application.
-Handles User (Trekker) registration, login for all roles, JWT issuance, and RBAC decorators.
-"""
-
 from functools import wraps
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 from flask import Blueprint, request, jsonify, current_app
 from backend.models import db, User
@@ -13,86 +8,58 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
 
 def generate_token(user):
-    #Generate a JWT token with user ID, role, and expiration.
-    secret_key = current_app.config.get('SECRET_KEY', 'default-jwt-secret-key-mad2')
+    # Create a 24-hour JWT token for the logged in user
+    secret = current_app.config.get('SECRET_KEY', 'default-jwt-secret-key-mad2')
     payload = {
         'user_id': user.id,
         'username': user.username,
         'email': user.email,
         'role': user.role,
-        'exp': datetime.utcnow() + timedelta(days=1)  # Token valid for 24 hours
+        'exp': datetime.now(timezone.utc) + timedelta(days=1)
     }
-    token = jwt.encode(payload, secret_key, algorithm='HS256')
-    return token
+    return jwt.encode(payload, secret, algorithm='HS256')
 
 
 def token_required(f):
-    """
-    Decorator to protect routes requiring authentication.
-    Injects 'current_user' into the protected route handler.
-    """
+    # Decorator to check if the user sent a valid Bearer token
     @wraps(f)
     def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', None)
-        if not auth_header:
-            return jsonify({'success': False, 'message': 'Authorization header is missing.'}), 401
+        header = request.headers.get('Authorization', '')
+        if not header.startswith('Bearer '):
+            return jsonify({'success': False, 'message': 'Missing or invalid token'}), 401
 
-        parts = auth_header.split()
-        if len(parts) != 2 or parts[0].lower() != 'bearer':
-            return jsonify({'success': False, 'message': 'Invalid token format. Use: Bearer <token>'}), 401
-
-        token = parts[1]
-        secret_key = current_app.config.get('SECRET_KEY', 'default-jwt-secret-key-mad2')
+        token = header.split(' ')[1]
+        secret = current_app.config.get('SECRET_KEY', 'default-jwt-secret-key-mad2')
 
         try:
-            payload = jwt.decode(token, secret_key, algorithms=['HS256'])
-            user_id = payload.get('user_id')
-            current_user = User.query.get(user_id)
+            data = jwt.decode(token, secret, algorithms=['HS256'])
+            user = User.query.get(data.get('user_id'))
+            if not user:
+                return jsonify({'success': False, 'message': 'User not found'}), 401
+            if not user.is_active:
+                return jsonify({'success': False, 'message': 'Account is deactivated'}), 403
+        except Exception:
+            return jsonify({'success': False, 'message': 'Invalid or expired token'}), 401
 
-            if not current_user:
-                return jsonify({'success': False, 'message': 'User associated with token not found.'}), 401
-
-            if not current_user.is_active:
-                return jsonify({
-                    'success': False,
-                    'message': 'Your account has been deactivated or blacklisted by the Administrator.'
-                }), 403
-
-        except jwt.ExpiredSignatureError:
-            return jsonify({'success': False, 'message': 'Session expired. Please log in again.'}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({'success': False, 'message': 'Invalid authentication token.'}), 401
-
-        return f(current_user, *args, **kwargs)
-
+        return f(user, *args, **kwargs)
     return decorated
 
 
 def role_required(allowed_roles):
-    """
-    Decorator to enforce Role-Based Access Control (RBAC).
-    Usage: @role_required(['admin']) or @role_required(['admin', 'staff'])
-    """
+    # Decorator to check user role (e.g. admin or staff)
     def decorator(f):
         @wraps(f)
-        def decorated_function(current_user, *args, **kwargs):
+        def wrapper(current_user, *args, **kwargs):
             if current_user.role not in allowed_roles:
-                return jsonify({
-                    'success': False,
-                    'message': f'Access forbidden: required role is one of {allowed_roles}, but you have role "{current_user.role}".'
-                }), 403
+                return jsonify({'success': False, 'message': 'Permission denied'}), 403
             return f(current_user, *args, **kwargs)
-        return decorated_function
+        return wrapper
     return decorator
 
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    """
-    User (Trekker) registration endpoint.
-    Only general trekkers can self-register.
-    Admin and Staff cannot register here (Admin is pre-seeded, Staff is created by Admin).
-    """
+    # User registration for regular trekkers
     data = request.get_json() or {}
 
     username = data.get('username', '').strip()
@@ -101,89 +68,62 @@ def register():
     full_name = data.get('full_name', '').strip()
     phone = data.get('phone', '').strip()
 
-    # Field validations
     if not username or not email or not password or not full_name:
-        return jsonify({
-            'success': False,
-            'message': 'Username, email, password, and full name are required.'
-        }), 400
+        return jsonify({'success': False, 'message': 'All fields are required'}), 400
 
     if len(password) < 6:
-        return jsonify({
-            'success': False,
-            'message': 'Password must be at least 6 characters long.'
-        }), 400
+        return jsonify({'success': False, 'message': 'Password must be at least 6 characters'}), 400
 
-    # Check for existing user
     if User.query.filter_by(username=username).first():
-        return jsonify({'success': False, 'message': 'Username is already taken.'}), 409
+        return jsonify({'success': False, 'message': 'Username already exists'}), 409
 
     if User.query.filter_by(email=email).first():
-        return jsonify({'success': False, 'message': 'Email is already registered.'}), 409
+        return jsonify({'success': False, 'message': 'Email already registered'}), 409
 
-    # Create new Trekker (User role is strictly 'user')
-    new_user = User(
+    user = User(
         username=username,
         email=email,
         full_name=full_name,
         phone=phone,
-        role='user',  # Self-registration is strictly for Trekkers
+        role='user',
         is_active=True
     )
-    new_user.set_password(password)
-
-    db.session.add(new_user)
+    user.set_password(password)
+    db.session.add(user)
     db.session.commit()
 
     return jsonify({
         'success': True,
-        'message': 'Registration successful! You can now log in.',
-        'user': new_user.to_dict()
+        'message': 'Registration successful',
+        'user': user.to_dict()
     }), 201
 
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """
-    Unified login endpoint for all roles: Admin, Trek Staff, and Trekkers.
-    Accepts email or username along with password.
-    """
+    # Login for admin, staff, and trekkers
     data = request.get_json() or {}
-
-    identifier = data.get('username') or data.get('email', '')
-    identifier = identifier.strip()
+    identifier = (data.get('username') or data.get('email', '')).strip()
     password = data.get('password', '').strip()
 
     if not identifier or not password:
-        return jsonify({
-            'success': False,
-            'message': 'Username/email and password are required.'
-        }), 400
+        return jsonify({'success': False, 'message': 'Please enter username and password'}), 400
 
-    # Search by either username or email
+    # Look up user by username or email
     user = User.query.filter(
         (User.username == identifier) | (User.email == identifier.lower())
     ).first()
 
     if not user or not user.check_password(password):
-        return jsonify({
-            'success': False,
-            'message': 'Invalid credentials. Please check your username/email and password.'
-        }), 401
+        return jsonify({'success': False, 'message': 'Incorrect username or password'}), 401
 
-    # Check if the account is deactivated or blacklisted
     if not user.is_active:
-        return jsonify({
-            'success': False,
-            'message': 'Your account has been deactivated or blacklisted. Contact the administrator.'
-        }), 403
+        return jsonify({'success': False, 'message': 'Account is deactivated'}), 403
 
-    # Generate JWT token
     token = generate_token(user)
-
     return jsonify({
         'success': True,
-        'message': f'Welcome back, {user.full_name}!',
+        'message': f'Welcome {user.full_name}',
         'token': token,
         'user': user.to_dict()
     }), 200
@@ -192,44 +132,33 @@ def login():
 @auth_bp.route('/profile', methods=['GET'])
 @token_required
 def get_profile(current_user):
-    """
-    Get profile information of the currently authenticated user.
-    """
-    return jsonify({
-        'success': True,
-        'user': current_user.to_dict()
-    }), 200
+    # Return profile of current user
+    return jsonify({'success': True, 'user': current_user.to_dict()}), 200
 
 
 @auth_bp.route('/profile', methods=['PUT'])
 @token_required
 def update_profile(current_user):
-    """
-    Update profile details for the currently authenticated user.
-    """
+    # Update profile fields
     data = request.get_json() or {}
 
-    full_name = data.get('full_name')
-    phone = data.get('phone')
-
-    if full_name:
-        current_user.full_name = full_name.strip()
-    if phone is not None:
-        current_user.phone = phone.strip()
+    if 'full_name' in data:
+        current_user.full_name = data['full_name'].strip()
+    if 'phone' in data:
+        current_user.phone = data['phone'].strip()
     if 'emergency_contact_name' in data:
-        current_user.emergency_contact_name = data['emergency_contact_name'].strip() if data['emergency_contact_name'] else None
+        current_user.emergency_contact_name = data['emergency_contact_name']
     if 'emergency_contact_phone' in data:
-        current_user.emergency_contact_phone = data['emergency_contact_phone'].strip() if data['emergency_contact_phone'] else None
+        current_user.emergency_contact_phone = data['emergency_contact_phone']
     if 'blood_group' in data:
-        current_user.blood_group = data['blood_group'].strip() if data['blood_group'] else None
+        current_user.blood_group = data['blood_group']
     if 'medical_notes' in data:
-        current_user.medical_notes = data['medical_notes'].strip() if data['medical_notes'] else None
+        current_user.medical_notes = data['medical_notes']
 
     db.session.commit()
-
     return jsonify({
         'success': True,
-        'message': 'Profile updated successfully.',
+        'message': 'Profile updated',
         'user': current_user.to_dict()
     }), 200
 
@@ -237,12 +166,5 @@ def update_profile(current_user):
 @auth_bp.route('/verify', methods=['GET'])
 @token_required
 def verify_token(current_user):
-    """
-    Verify if the provided token is valid and return active user profile.
-    Useful for Vue frontend router navigation guards.
-    """
-    return jsonify({
-        'success': True,
-        'valid': True,
-        'user': current_user.to_dict()
-    }), 200
+    # Quick check for frontend router
+    return jsonify({'success': True, 'valid': True, 'user': current_user.to_dict()}), 200
